@@ -1,7 +1,0 @@
-SRC="main.c blowfish.c"
-HEADERS="blowfish.h macros.h"
-TARGET="test_blowfish"
-
-gcc -Wall -o $TARGET $SRC
-rm -f *~
-./$TARGET
