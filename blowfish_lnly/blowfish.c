@@ -19,10 +19,12 @@
  ********************************************************************************/
 
 #include <string.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <assert.h>
+
+
+#define IS_DEBUG 1
 
 enum {
 	P_SZ = 18,
@@ -496,7 +498,10 @@ blowfish_key_expantion(struct blowfish_context *ctx)
 	}
 }
 
-/* ============================================ */
+#if (IS_DEBUG == 1)
+
+#include <stdio.h>
+
 void
 blowfish_view(struct blowfish_context *ctx)
 {
@@ -513,3 +518,5 @@ blowfish_view(struct blowfish_context *ctx)
 		printf("%X.", ctx->P[i]);
 	printf("\n");
 }
+#endif
+

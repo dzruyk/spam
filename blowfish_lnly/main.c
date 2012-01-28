@@ -1,9 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 
-
-#include "macros.h"
 #include "blowfish.h"
 
 static uint32_t newP[] = {
@@ -19,25 +18,25 @@ static uint32_t key[] = {
 
 static uint32_t var[]= { 0xdeadbeef, 0xabcdef};
 
-static unsigned char var2[] = {0xde, 0xad, 0xbe, 0xef, 0xab, 0xcd, 0xef, 0x00};
-
 int
 main(int argc, char *argv[])
 {
 	int i;
 	struct blowfish_context *ctx;
-	
+	uint32_t tmp[2];
+
 	ctx = blowfish_context_new();
-//	blowfish_set_p(ctx, newP);
 	
-	//blowfish_view(ctx);
+	blowfish_set_p(ctx, newP);
 
 	blowfish_set_key(ctx, (unsigned char*) "TESTKEY", 7);
 	
 	printf("\nbefore encr = ");
 	for (i = 0; i < 8; i++)
 		printf("%x.",((unsigned char*) var)[i]);
-		
+	
+	memcpy(tmp, var, sizeof(var));
+	
 	blowfish_encrypt(ctx, (uint32_t*) var);
 	
 	printf("\nafter encr = ");
@@ -45,13 +44,18 @@ main(int argc, char *argv[])
 		printf("%x.",((unsigned char*) var)[i]);
 	
 	blowfish_decrypt(ctx,(uint32_t*) var);
-	
+
 	printf("\nafter decr = ");
 	for (i = 0; i < 8; i++)
-		printf("%x.",((unsigned char*) var)[i]);
-	
+		printf("%x.",((unsigned char*) var)[i]);	
 	printf("\n");
-	blowfish_view(ctx);
 	
+	if (strncmp((char*)tmp, (char*)var, sizeof(var)))
+		printf("%s%s", "\n===================================",
+		    "\ntest failed!!!!!!!!!!\n\n===================================\n");
+	else
+		printf("%s%s", "\n===================================",
+		    "\nTEST PASSED\n\n===================================\n");
 	return 0;
-} 
+}
+

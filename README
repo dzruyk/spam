@@ -3,7 +3,3 @@ Sub projects:
 blowfish:
 	blowfish algorithm realisation
 
-Pitch-shift:
-	program that shifting pitch of input sound in real time(ALSA lib required)
-
-
