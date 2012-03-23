@@ -1,5 +1,7 @@
 Sub projects:
 
 blowfish:
-	blowfish algorithm realisation
+	Blowfish algorithm realisation.
 
+bclite:
+	Simple bc realisation that I writed for some experience.
