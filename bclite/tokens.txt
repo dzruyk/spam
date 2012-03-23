@@ -1,0 +1,5 @@
+asd + 123131 + home + gogogog + c44 + 123
+
+for (i = 0; i < 10; i++) {
+	printf("s");
+}

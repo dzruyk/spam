@@ -1,0 +1,55 @@
+SYNTAX:
+	prog 	->	statement
+	
+	statement->	expr = statement
+		 |	expr
+	
+	expr	->	expr + term
+		|	expr - term
+		|	term
+	
+	term	->	term * factor
+		|	term / factor
+		|	factor
+	
+	factor	->	number
+		|	id
+		|	(statement)
+
+
+ADAPTED SYNTAX:
+	prog 	->	statement
+	
+	statement->	expr = statement
+		 |	expr
+
+	expr	->	term expr_rest
+
+	expr_rest->	+ term expr_rest
+		|	- term expr_rest
+		|	EMPTY
+
+	term	->	factor term_rest
+	
+	term_rest->	* factor term_rest
+		|	/ factor term_rest
+		|	EMPTY
+
+	factor	->	number
+		|	id
+		|	(statement)
+
+
+TERMINALS:
+	ID	(name, value)
+	NUMBER	(value)
+	LPARENTH
+	RPARENTH
+	EQ
+	PLUS
+	MINUS
+	MUL
+	DIV
+	EOL
+	UNKNOWN
+
