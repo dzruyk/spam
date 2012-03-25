@@ -4,47 +4,45 @@
 
 //FIXME: may be need to implement stack with dynamic array
 //	 but I'm so tired...)
-//FIXME 2: need to replace (int val) element with (void *val)
-//
 
 struct lst {
 	struct lst *next;
-	int val;
+	void *data;
 };
 
 struct lst *stack = NULL;
 
 void 
-stack_push(int val)
+stack_push(void *data)
 {
 	struct lst *nitem;
 
-	//if (NULL == val)
-	//	print_warn_and_die("INTERNAL_ERROR: try to push NULL in stack\n");
+	if (data == NULL)
+		print_warn_and_die("INTERNAL_ERROR: try to push NULL in stack\n");
 	
 	nitem = malloc_or_die(sizeof(*nitem));
 	
-	nitem->val = val;
+	nitem->data = data;
 	nitem->next = stack;
 	stack = nitem;
 }
 
-int
+void *
 stack_pop()
 {
 	struct lst *nitem;
-	int val;
+	void *data;
 
-	if (NULL == stack)
-		print_warn_and_die("INTERNAL_ERROR: stack is empty\n");
+	if (stack == NULL)
+		return NULL;
 	
 	nitem = stack;
 	stack = stack->next;
 
-	val = nitem->val;
+	data = nitem->data;
 	
 	free(nitem);
-	return val;
+	return data;
 }
 
 void 
@@ -52,7 +50,7 @@ stack_flush()
 {
 	struct lst *next;
 
-	for (; NULL != stack; stack = next) {
+	for (; stack != NULL; stack = next) {
 		next = stack->next;
 		free(stack);
 	}

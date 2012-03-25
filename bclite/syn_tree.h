@@ -50,8 +50,6 @@ syn_tree_t *syn_tree_id_new(id_table_item_t *item);
 
 syn_tree_t *syn_tree_op_new(syn_tree_t* left, syn_tree_t *right,int opcode);
 
-syn_tree_t *syn_tree_as_new(syn_tree_t *left, syn_tree_t *right);
-
 void syn_tree_unref(syn_tree_t *tree);
 
 #endif

@@ -41,7 +41,7 @@ id_table_create()
 	identifier = hash_table_new(INITIAL_SZ, (hash_callback_t)id_hash_cb,
 	    (hash_compare_t)id_compare);
 	
-	if (NULL == identifier)
+	if (identifier == NULL)
 		print_warn_and_die("error at identifier table creation\n");
 }
 
@@ -51,9 +51,9 @@ id_table_insert(id_table_item_t *item)
 	int res;
 	//TODO: запихивать нормальную структуру а не просто строку
 	res = hash_table_insert_unique(identifier, item->name, item);
-	if (ret_out_of_memory == res)
+	if (res == ret_out_of_memory)
 		print_warn_and_die("error at id table insertion\n");
-	else if (ret_entry_exists == res)
+	else if (res == ret_entry_exists)
 		print_warn_and_die("internal error, entry exists\n");
 
 	return ret_ok;
@@ -64,7 +64,7 @@ id_table_lookup(char *name)
 {
 	id_table_item_t *res;
 	
-	if (ret_ok == hash_table_lookup(identifier, name, (void**)&res))
+	if (hash_table_lookup(identifier, name, (void**)&res) == ret_ok )
 		return res;
 	else
 		return NULL;
@@ -85,7 +85,7 @@ id_table_destroy()
 
 	iter = hash_table_iterate_init(identifier);
 	
-	while (FALSE != hash_table_iterate(iter, &key, &data))
+	while (hash_table_iterate(iter, &key, &data) != FALSE)
 		id_table_destroy_cb((id_table_item_t*)data);
 
 	hash_table_iterate_deinit(&iter);

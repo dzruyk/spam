@@ -3,7 +3,7 @@
 
 void traverse(syn_tree_t *tree);
 
-void print_result();
+void traverse_print_result();
 
 #endif
 

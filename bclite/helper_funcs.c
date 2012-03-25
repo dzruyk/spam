@@ -24,7 +24,7 @@ inline void *
 malloc_or_die(size_t sz)
 {	
 	void *tmp;
-	if (NULL == (tmp = malloc(sz)))
+	if ((tmp = malloc(sz)) == NULL)
 		print_warn_and_die("malloc_err");
 	return tmp;
 }

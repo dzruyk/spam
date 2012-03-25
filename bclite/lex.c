@@ -9,6 +9,43 @@
 extern struct hash_table *identifier;
 
 struct lex_item lex_item;
+struct lex_item lex_item_prev;
+tok_t current_tok;
+
+void
+update_prev_token()
+{
+	lex_item_prev.id = lex_item.id;
+	switch(lex_item.id) {
+	case TOK_ID:
+		lex_item_prev.item = lex_item.item;
+		break;
+	case TOK_NUM:
+		lex_item_prev.num = lex_item.num;
+		break;
+	default:
+		lex_item_prev.op = lex_item.op;
+	}
+}
+
+void
+tok_next()
+{
+	update_prev_token();
+	current_tok = get_next_token();
+}
+
+inline boolean_t
+match(const tok_t expect)
+{
+	if (current_tok == expect) {
+		tok_next();
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
 
 tok_t
 get_next_token()
@@ -39,7 +76,7 @@ get_next_token()
 		do {
 			if (used >= len - 1) {
 				len += 64;
-				if (NULL == (tmp = realloc(s, len)))
+				if ((tmp = realloc(s, len)) == NULL)
 					print_warn_and_die("realloc_err");
 				s = tmp;
 			}
@@ -48,11 +85,11 @@ get_next_token()
 		} while(isdigit(peek) || isalpha(peek));
 		//FIXME: now we cant have id with _
 		s[used++] = '\0';
-		if (NULL == (tmp = realloc(s, used)))
+		if ((tmp = realloc(s, used)) == NULL)
 			print_warn_and_die("realloc_err");
 		s = tmp;
 
-		if (NULL == (nitem = id_table_lookup(s))) {
+		if ((nitem = id_table_lookup(s)) == NULL) {
 			nitem = malloc_or_die(sizeof(*nitem));
 			nitem->value = 0;
 			nitem->name = s;
@@ -76,7 +113,7 @@ get_next_token()
 	case '<':
 		lex_item.id = TOK_RELOP;
 		peek = fgetc(stdin);
-		if ('=' == peek)
+		if (peek == '=')
 			lex_item.op = RELOP_LE;
 		else
 			lex_item.op = RELOP_LO;
@@ -84,7 +121,7 @@ get_next_token()
 	case '>':
 		lex_item.id = TOK_RELOP;
 		peek = fgetc(stdin);
-		if ('=' == peek)
+		if (peek == '=')
 			lex_item.op = RELOP_GE;
 		else
 			lex_item.op = RELOP_GR;
@@ -117,6 +154,10 @@ get_next_token()
 		peek = ' ';
 		lex_item.id = lex_item.op = TOK_EOL;
 		return TOK_EOL;
+	case EOF:
+		peek = ' ';
+		lex_item.id = lex_item.op = TOK_EOF;
+		return TOK_EOF;
 	}
 	
 	lex_item.id = lex_item.op = TOK_UNKNOWN;

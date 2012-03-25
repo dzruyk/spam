@@ -7,60 +7,36 @@
 #include "lex.h"
 
 extern struct lex_item lex_item;
-static struct lex_item lex_item_prev;
+extern struct lex_item lex_item_prev;
+extern tok_t current_tok;
 
-static tok_t current_tok;
+
+int syntax_is_eof = 0;
 
 static int nerrors;
 
-static void
-update_prev_token()
-{
-	lex_item_prev.id = lex_item.id;
-	switch(lex_item.id) {
-	case TOK_ID:
-		lex_item_prev.item = lex_item.item;
-		break;
-	case TOK_NUM:
-		lex_item_prev.num = lex_item.num;
-		break;
-	default:
-		lex_item_prev.op = lex_item.op;
-	}
-}
+//WARNING:
+//now I not remove nodes after error
 
-static void
-tok_next()
+ret_t
+program_start(syn_tree_t **tree)
 {
-	update_prev_token();
-	current_tok = get_next_token();
-}
-
-inline static boolean_t
-match(tok_t expect)
-{
-	if (current_tok == expect) {
-		tok_next();
-		return TRUE;
-	}
-
-	return FALSE;
-}
-
-syn_tree_t *
-program_start()
-{
-	syn_tree_t *tree;
 	nerrors = 0;
+	*tree = NULL;
 	
-	tree = NULL;
 	tok_next();
 
-
-	while(TOK_EOL != current_tok && TOK_UNKNOWN != current_tok)
-		tree = statesment();
+	*tree = statesment();
 	
-	return tree;
+	if (nerrors != 0) {
+		//now we must flush tree
+		if (*tree != NULL)
+			syn_tree_unref(*tree);
+			*tree = NULL;
+		return ret_err;
+	}
+
+	return ret_ok;
 }
 
 
@@ -70,13 +46,20 @@ statesment()
 	syn_tree_t *right, *result;
 
 	result = expr();
+
+	if (result == NULL)
+		return NULL;
 	
-	if (TOK_AS == current_tok) {
+	if (current_tok == TOK_AS) {
 		tok_next();
 		right = statesment();
-		result = syn_tree_as_new(result, right);
+		if (right == NULL) {
+			nerrors++;
+			print_warn("uncomplited as expression\n");
+			return result;
+		}
+		result = syn_tree_op_new(result, right, TOK_AS);
 	}
-
 	return result;
 }
 
@@ -88,10 +71,9 @@ expr()
 
 	tree = term();
 
-	if (NULL == tree)
+	if (tree == NULL)
 		return NULL;
 	
-
 	return expr_rest(tree);
 }
 
@@ -117,14 +99,14 @@ expr_rest(syn_tree_t *left)
 		tok_next();
 
 		right = term();
-		if (NULL == right) {
-			print_warn_and_die("uncomplited expression\n");
-			return NULL;
+		if (right == NULL) {
+			nerrors++;
+			print_warn("uncomplited expr expression\n");
+			return result;
 		}
 
 		result = syn_tree_op_new(result, right, op);
 	}
-
 }
 
 syn_tree_t *
@@ -133,7 +115,7 @@ term()
 	syn_tree_t *tree;
 
 	tree = factor();
-	if (NULL == tree) 
+	if (tree == NULL) 
 		return NULL;
 
 	return term_rest(tree);
@@ -161,9 +143,10 @@ term_rest(syn_tree_t *left)
 		tok_next();
 
 		right = factor();
-		if (NULL == right) {
-			print_warn_and_die("uncomplited expression\n");
-			return NULL;
+		if (right == NULL) {
+			nerrors++;
+			print_warn("uncomplited term expression\n");
+			return result;
 		}
 
 		result = syn_tree_op_new(result, right, op);
@@ -181,18 +164,23 @@ factor()
 		return syn_tree_num_new(lex_item_prev.num);
 	else if (match(TOK_LPAR)) {
 		stat = statesment();
-		if (FALSE == match(TOK_RPAR)) {
+		if (match(TOK_RPAR) == FALSE) {
 			print_warn("right parenthesis missed\n");
 			nerrors++;
-			return NULL;
+			return stat;
 		}
 		return stat;
-	} else if (TOK_EOL == current_tok)
+	} else if (current_tok == TOK_EOL) {
 		return NULL;
-	else if (TOK_UNKNOWN == current_tok)
+	} else if (current_tok == TOK_EOF) {
+		syntax_is_eof = 1;
 		return NULL;
+	}
 
-	print_warn_and_die("unsupported expression\n");
+	nerrors++;
+	print_warn("unsupported token tryed to factor\n");
+	tok_next();
+	
 	return NULL;
 }
 

@@ -32,16 +32,6 @@ syn_tree_op_free(syn_tree_t *tree)
 	free(tree);
 }
 
-static void
-syn_tree_as_free(syn_tree_t *tree)
-{
-	return_if_fail(tree != NULL);
-
-	syn_tree_unref(tree->left);
-	syn_tree_unref(tree->right);
-	free(tree);
-}
-
 syn_tree_t *
 syn_tree_num_new(int num)
 {
@@ -87,22 +77,6 @@ syn_tree_op_new(syn_tree_t *left, syn_tree_t *right,int opcode)
 	SYN_TREE(res)->destructor = syn_tree_op_free;
 
 	res->opcode = opcode;
-
-	return SYN_TREE(res);
-}
-
-syn_tree_t *
-syn_tree_as_new(syn_tree_t *left, syn_tree_t *right)
-{
-	syn_tree_op_t *res;
-
-	res = malloc_or_die(sizeof(*res));
-
-	SYN_TREE(res)->left = left;
-	SYN_TREE(res)->right = right;
-	SYN_TREE(res)->type = SYN_TREE_AS;
-	
-	SYN_TREE(res)->destructor = syn_tree_as_free;
 
 	return SYN_TREE(res);
 }

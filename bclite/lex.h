@@ -1,7 +1,8 @@
 #ifndef __LEX_H__
 #define __LEX_H__
 
-#include "id_table.h"
+#include "common.h"
+#include "macros.h"
 
 typedef enum {
 	TOK_ID,
@@ -15,6 +16,7 @@ typedef enum {
 	TOK_MUL,
 	TOK_DIV,
 	TOK_EOL,
+	TOK_EOF,
 	TOK_UNKNOWN,
 } tok_t;
 
@@ -34,6 +36,12 @@ struct lex_item {
 		int op;
 	};
 };
+
+void update_prev_token();
+
+void tok_next();
+
+inline boolean_t match(const tok_t expect);
 
 tok_t get_next_token();
 
