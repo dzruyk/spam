@@ -15,9 +15,6 @@ int syntax_is_eof = 0;
 
 static int nerrors;
 
-//WARNING:
-//now I not remove nodes after error
-
 ret_t
 program_start(syn_tree_t **tree)
 {
@@ -39,7 +36,6 @@ program_start(syn_tree_t **tree)
 	return ret_ok;
 }
 
-
 syn_tree_t *
 statesment()
 {
@@ -56,13 +52,12 @@ statesment()
 		if (right == NULL) {
 			nerrors++;
 			print_warn("uncomplited as expression\n");
-			return result;
+			right = syn_tree_stub_new();
 		}
 		result = syn_tree_op_new(result, right, TOK_AS);
 	}
 	return result;
 }
-
 
 syn_tree_t *
 expr()
@@ -102,7 +97,7 @@ expr_rest(syn_tree_t *left)
 		if (right == NULL) {
 			nerrors++;
 			print_warn("uncomplited expr expression\n");
-			return result;
+			right = syn_tree_stub_new();
 		}
 
 		result = syn_tree_op_new(result, right, op);
@@ -146,7 +141,7 @@ term_rest(syn_tree_t *left)
 		if (right == NULL) {
 			nerrors++;
 			print_warn("uncomplited term expression\n");
-			return result;
+			right = syn_tree_stub_new();
 		}
 
 		result = syn_tree_op_new(result, right, op);
@@ -181,6 +176,8 @@ factor()
 	print_warn("unsupported token tryed to factor\n");
 	tok_next();
 	
-	return NULL;
+	stat = syn_tree_stub_new();
+
+	return stat;
 }
 

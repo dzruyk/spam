@@ -12,7 +12,7 @@ struct lex_item lex_item;
 struct lex_item lex_item_prev;
 tok_t current_tok;
 
-void
+static void
 update_prev_token()
 {
 	lex_item_prev.id = lex_item.id;

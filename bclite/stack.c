@@ -56,5 +56,3 @@ stack_flush()
 	}
 }
 
-
-

@@ -64,7 +64,6 @@ eval_process(eval_t *left, eval_t *right, tok_t opcode)
 {
 	eval_t *ev;
 	int l, r, res;
-
 	
 	l = eval_get_val(left);
 	r = eval_get_val(right);
@@ -74,6 +73,11 @@ eval_process(eval_t *left, eval_t *right, tok_t opcode)
 		res = l * r;
 		break;
 	case TOK_DIV:
+		if (r == 0) {
+			print_warn("divide by zero\n");
+			res = 0;
+			break;
+		}
 		res = l / r;
 		break;
 	case TOK_PLUS:

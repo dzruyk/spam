@@ -9,7 +9,7 @@ typedef enum {
 	SYN_TREE_EXPR,
 	SYN_TREE_ID,
 	SYN_TREE_NUM,
-	SYN_TREE_AS,
+	SYN_TREE_STUB,
 	SYN_TREE_UNKNOWN,
 } syn_tree_node_t;
 
@@ -42,13 +42,15 @@ typedef struct {
 
 typedef struct {
 	syn_tree_t tree;
-} syn_tree_as_t;
+} syn_tree_stub_t;
 
 syn_tree_t *syn_tree_num_new(int num);
 
 syn_tree_t *syn_tree_id_new(id_table_item_t *item);
 
 syn_tree_t *syn_tree_op_new(syn_tree_t* left, syn_tree_t *right,int opcode);
+
+syn_tree_t *syn_tree_stub_new();
 
 void syn_tree_unref(syn_tree_t *tree);
 

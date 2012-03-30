@@ -68,6 +68,12 @@ traverse_expr(syn_tree_t *tree)
 	stack_push(res);
 }
 
+static void
+traverse_stub(syn_tree_t *tree)
+{
+	return;
+}
+
 struct {
 	syn_tree_node_t node;
 	traverse_cb callback;
@@ -75,6 +81,7 @@ struct {
 	{SYN_TREE_EXPR, traverse_expr},
 	{SYN_TREE_ID, traverse_id},
 	{SYN_TREE_NUM, traverse_num},
+	{SYN_TREE_STUB}, traverse_stub},
 	{SYN_TREE_UNKNOWN, NULL},
 };
 

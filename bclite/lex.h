@@ -37,8 +37,6 @@ struct lex_item {
 	};
 };
 
-void update_prev_token();
-
 void tok_next();
 
 inline boolean_t match(const tok_t expect);
