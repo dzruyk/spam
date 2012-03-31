@@ -29,7 +29,7 @@ typedef enum {
 } relop_t;
 
 struct lex_item {
-	int id;
+	tok_t id;
 	union {
 		int num;
 		id_table_item_t *item;

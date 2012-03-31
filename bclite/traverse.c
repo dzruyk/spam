@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+#include "common.h"
 #include "eval.h"
 #include "helper_funcs.h"
 #include "lex.h"
@@ -8,7 +9,11 @@
 #include "syn_tree.h"
 #include "traverse.h"
 
+static void traverse(syn_tree_t *tree);
+
 typedef void (*traverse_cb)(syn_tree_t *tree);
+
+static int nerrors = 0;
 
 static void
 traverse_num(syn_tree_t *tree)
@@ -23,7 +28,6 @@ traverse_num(syn_tree_t *tree)
 	stack_push(ev);
 }
 
-
 static void
 traverse_id(syn_tree_t *tree)
 {
@@ -37,7 +41,7 @@ traverse_id(syn_tree_t *tree)
 }
 
 static void
-traverse_expr(syn_tree_t *tree)
+traverse_op(syn_tree_t *tree)
 {
 	syn_tree_op_t *optree;
 	eval_t *left, *right, *res;
@@ -46,6 +50,9 @@ traverse_expr(syn_tree_t *tree)
 	traverse(SYN_TREE(optree)->left);	
 	traverse(SYN_TREE(optree)->right);
 
+	if (nerrors != 0)
+		return;
+	
 	right = stack_pop();
 	left = stack_pop();
 	
@@ -64,13 +71,18 @@ traverse_expr(syn_tree_t *tree)
 	default:
 		print_warn_and_die("INTERNAL_EROR: can't traverse this operation\n");
 	}
-
+	if (res == NULL) {
+		nerrors++;
+		return;
+	}
+	
 	stack_push(res);
 }
 
 static void
 traverse_stub(syn_tree_t *tree)
 {
+	nerrors++;
 	return;
 }
 
@@ -78,14 +90,14 @@ struct {
 	syn_tree_node_t node;
 	traverse_cb callback;
 } node_type [] = {
-	{SYN_TREE_EXPR, traverse_expr},
+	{SYN_TREE_EXPR, traverse_op},
 	{SYN_TREE_ID, traverse_id},
 	{SYN_TREE_NUM, traverse_num},
-	{SYN_TREE_STUB}, traverse_stub},
+	{SYN_TREE_STUB, traverse_stub},
 	{SYN_TREE_UNKNOWN, NULL},
 };
 
-void
+static void
 traverse(syn_tree_t *tree)
 {
 	int i;
@@ -99,6 +111,28 @@ traverse(syn_tree_t *tree)
 		}
 }
 
+//ASKME: I need to unref tree here?
+//
+ret_t
+traverse_prog(syn_tree_t *tree)
+{
+	if (tree == NULL)
+		return ret_ok;
+	nerrors = 0;
+
+	traverse(tree);
+	
+	syn_tree_unref(tree);
+
+	if (nerrors != 0) {
+		stack_flush();
+		return ret_err;
+	}
+	return ret_ok;
+}
+
+
+//pop first item of stack and prints it
 void
 traverse_print_result()
 {
@@ -113,5 +147,7 @@ traverse_print_result()
 	val = eval_get_val(tmp);
 	
 	printf("%d\n", val);
+
+	eval_free(tmp);
 }
 

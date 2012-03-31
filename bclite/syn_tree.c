@@ -103,13 +103,13 @@ syn_tree_stub_new()
 	SYN_TREE(res)->type = SYN_TREE_STUB;
 	SYN_TREE(res)->destructor = syn_tree_stub_free;
 
-	return res;
+	return SYN_TREE(res);
 }
 
 void
 syn_tree_unref(syn_tree_t *tree)
 {
-	return_if_fail(tree != NULL);
-	tree->destructor(tree);
+	if (tree != NULL)
+		tree->destructor(tree);
 }
 

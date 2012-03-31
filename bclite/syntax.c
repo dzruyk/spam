@@ -6,6 +6,14 @@
 #include "syntax.h"
 #include "lex.h"
 
+static syn_tree_t *statesment();
+static syn_tree_t *expr();
+static syn_tree_t *expr_rest();
+static syn_tree_t *term();
+static syn_tree_t *term_rest();
+static syn_tree_t *factor();
+
+
 extern struct lex_item lex_item;
 extern struct lex_item lex_item_prev;
 extern tok_t current_tok;
@@ -15,6 +23,7 @@ int syntax_is_eof = 0;
 
 static int nerrors;
 
+// Now we flush tree here if some errors occured
 ret_t
 program_start(syn_tree_t **tree)
 {
@@ -27,16 +36,17 @@ program_start(syn_tree_t **tree)
 	
 	if (nerrors != 0) {
 		//now we must flush tree
-		if (*tree != NULL)
+		if (*tree != NULL) {
 			syn_tree_unref(*tree);
 			*tree = NULL;
+		}
 		return ret_err;
 	}
 
 	return ret_ok;
 }
 
-syn_tree_t *
+static syn_tree_t *
 statesment()
 {
 	syn_tree_t *right, *result;
@@ -59,7 +69,7 @@ statesment()
 	return result;
 }
 
-syn_tree_t *
+static syn_tree_t *
 expr()
 {
 	syn_tree_t *tree;
@@ -104,7 +114,7 @@ expr_rest(syn_tree_t *left)
 	}
 }
 
-syn_tree_t *
+static syn_tree_t *
 term()
 {
 	syn_tree_t *tree;
@@ -116,7 +126,7 @@ term()
 	return term_rest(tree);
 }
 
-syn_tree_t *
+static syn_tree_t *
 term_rest(syn_tree_t *left)
 {
 	syn_tree_t *right, *result;
@@ -148,7 +158,7 @@ term_rest(syn_tree_t *left)
 	}
 }
 
-syn_tree_t *
+static syn_tree_t *
 factor()
 {
 	syn_tree_t *stat;

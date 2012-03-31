@@ -21,9 +21,7 @@ eval_t *eval_id_new();
 
 eval_t *eval_num_new();
 
-void eval_id_free();
-
-void eval_num_free();
+void eval_free(eval_t *eval);
 
 eval_t *eval_process();
 

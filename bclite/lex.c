@@ -160,8 +160,9 @@ get_next_token()
 		return TOK_EOF;
 	}
 	
+	peek = ' ';
 	lex_item.id = lex_item.op = TOK_UNKNOWN;
-	
+
 	return TOK_UNKNOWN;
 }
 

@@ -30,15 +30,17 @@ eval_num_new(int value)
 	return res;
 }
 
-void
+static void
 eval_id_free(eval_t *eval)
 {
+	return_if_fail(eval);
 	free(eval);
 }
 
-void
+static void
 eval_num_free(eval_t *eval)
 {
+	return_if_fail(eval);
 	free(eval);
 }
 
@@ -57,8 +59,6 @@ eval_free(eval_t *eval)
 	}
 }
 
-
-//FIXME: WRITE_ME
 eval_t *
 eval_process(eval_t *left, eval_t *right, tok_t opcode)
 {
@@ -75,8 +75,7 @@ eval_process(eval_t *left, eval_t *right, tok_t opcode)
 	case TOK_DIV:
 		if (r == 0) {
 			print_warn("divide by zero\n");
-			res = 0;
-			break;
+			return NULL;
 		}
 		res = l / r;
 		break;
@@ -89,7 +88,7 @@ eval_process(eval_t *left, eval_t *right, tok_t opcode)
 	case TOK_AS:
 		if (left->type == EVAL_NUM) {
 			print_warn("ERROR: assignment to number\n");
-			break;
+			return NULL;	
 		} else {
 			res = left->item->value = eval_get_val(right);
 			break;
@@ -104,21 +103,26 @@ eval_process(eval_t *left, eval_t *right, tok_t opcode)
 	return ev;
 }
 
+
 int
 eval_get_val(eval_t *eval)
 {
+	int value;
+
 	if (eval == NULL)
 		print_warn_and_die("INTERNAL ERROR: cant get eval bcs its NULL\n");
 
 	switch(eval->type) {
 	case EVAL_NUM:
-		return eval->value;
+		value = eval->value;
+		break;
 	case EVAL_ID:
-		return eval->item->value;
+		value = eval->item->value;
+		break;
 	default:
 		print_warn_and_die("INTERNAL ERROR: cant get value\n");
 		return 0;
 	}
-	
+	return value; 
 }
 

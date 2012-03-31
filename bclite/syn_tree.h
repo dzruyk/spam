@@ -18,7 +18,7 @@ struct syn_tree;
 typedef void (*destructor_t)(struct syn_tree *p);
 
 typedef struct syn_tree {
-	int type;
+	syn_tree_node_t type;
 	struct syn_tree *left;
 	struct syn_tree *right;
 	destructor_t destructor;

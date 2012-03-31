@@ -14,12 +14,11 @@ main(int argc, char *argv[])
 
 	do {
 		ret = program_start(&tree);
-		if (tree == NULL)
+		if (tree == NULL || ret != ret_ok)
 			continue;
-		if (ret_ok == ret) {
-			traverse(tree);
+		if (traverse_prog(tree) == ret_ok)
 			traverse_print_result();
-		}
+
 	} while (syntax_is_eof != 1);
 
 	id_table_destroy();
