@@ -49,7 +49,7 @@ ret_t
 id_table_insert(id_table_item_t *item)
 {
 	int res;
-	//TODO: запихивать нормальную структуру а не просто строку
+	
 	res = hash_table_insert_unique(identifier, item->name, item);
 	if (res == ret_out_of_memory)
 		print_warn_and_die("error at id table insertion\n");

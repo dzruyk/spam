@@ -64,7 +64,7 @@ statesment()
 			print_warn("uncomplited as expression\n");
 			right = syn_tree_stub_new();
 		}
-		result = syn_tree_op_new(result, right, TOK_AS);
+		result = syn_tree_as_new(result, right);
 	}
 	return result;
 }
@@ -162,12 +162,15 @@ static syn_tree_t *
 factor()
 {
 	syn_tree_t *stat;
-
-	if (match(TOK_ID))
+	
+	//FIXME:need to lookup id_table, and if no maches 
+	// inc error
+	
+	if (match(TOK_ID)) {
 		return syn_tree_id_new(lex_item_prev.item);
-	else if (match(TOK_NUM))
+	} else if (match(TOK_NUM)) {
 		return syn_tree_num_new(lex_item_prev.num);
-	else if (match(TOK_LPAR)) {
+	} else if (match(TOK_LPAR)) {
 		stat = statesment();
 		if (match(TOK_RPAR) == FALSE) {
 			print_warn("right parenthesis missed\n");

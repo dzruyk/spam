@@ -1,23 +1,9 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include "helper_funcs.h"
 
 inline void
 print_usage(char *pname)
 {
 	printf("USAGE:%s\n", pname);
-}
-
-inline void
-print_warn_and_die(char *str)
-{
-	fprintf(stderr, "%s", str);
-	exit(1);
-}
-
-inline void
-print_warn(char *str)
-{
-	fprintf(stderr, "%s", str);
 }
 
 inline void *

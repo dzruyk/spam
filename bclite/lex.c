@@ -46,7 +46,6 @@ match(const tok_t expect)
 	return FALSE;
 }
 
-
 tok_t
 get_next_token()
 {
@@ -91,6 +90,7 @@ get_next_token()
 
 		if ((nitem = id_table_lookup(s)) == NULL) {
 			nitem = malloc_or_die(sizeof(*nitem));
+			nitem->id = ID_UNKNOWN;
 			nitem->value = 0;
 			nitem->name = s;
 			id_table_insert(nitem);

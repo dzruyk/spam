@@ -3,7 +3,14 @@
 
 #include "common.h"
 
+typedef enum {
+	ID_NUM,
+	ID_FUNC,
+	ID_UNKNOWN,
+} id_item_t;
+
 typedef struct {
+	id_item_t id;
 	char *name;
 	int value;
 } id_table_item_t;

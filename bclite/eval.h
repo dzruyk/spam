@@ -2,6 +2,7 @@
 #define _EVAL_H_
 
 #include "id_table.h"
+#include "lex.h"
 
 typedef enum {
 	EVAL_NUM,
@@ -23,8 +24,10 @@ eval_t *eval_num_new();
 
 void eval_free(eval_t *eval);
 
-eval_t *eval_process();
+eval_t *eval_process(eval_t *left, eval_t *right, tok_t opcode);
 
-int eval_get_val(eval_t *eval);
+eval_t * eval_assign(eval_t *left, eval_t *right);
+
+ret_t eval_get_val(int *res, eval_t *eval);
 #endif
 

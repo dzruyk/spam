@@ -6,7 +6,8 @@
 #include "id_table.h"
 
 typedef enum {
-	SYN_TREE_EXPR,
+	SYN_TREE_AS,
+	SYN_TREE_OP,
 	SYN_TREE_ID,
 	SYN_TREE_NUM,
 	SYN_TREE_STUB,
@@ -24,11 +25,14 @@ typedef struct syn_tree {
 	destructor_t destructor;
 } syn_tree_t;	
 
-
 typedef struct {
 	syn_tree_t tree;
 	int opcode;
 } syn_tree_op_t;
+
+typedef struct {
+	syn_tree_t tree;
+} syn_tree_as_t;
 
 typedef struct {
 	syn_tree_t tree;
@@ -49,6 +53,8 @@ syn_tree_t *syn_tree_num_new(int num);
 syn_tree_t *syn_tree_id_new(id_table_item_t *item);
 
 syn_tree_t *syn_tree_op_new(syn_tree_t* left, syn_tree_t *right,int opcode);
+
+syn_tree_t * syn_tree_as_new(syn_tree_t *left, syn_tree_t *right);
 
 syn_tree_t *syn_tree_stub_new();
 
