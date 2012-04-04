@@ -152,7 +152,7 @@ traverse_prog(syn_tree_t *tree)
 	syn_tree_unref(tree);
 
 	if (nerrors != 0) {
-		stack_flush();
+		stack_flush((stack_item_free_t)eval_free);
 		return ret_err;
 	}
 	return ret_ok;

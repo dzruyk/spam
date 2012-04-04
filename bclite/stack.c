@@ -1,5 +1,6 @@
 #include <stdlib.h>
 
+#include "stack.h"
 #include "helper_funcs.h"
 
 //FIXME: may be need to implement stack with dynamic array
@@ -46,12 +47,13 @@ stack_pop()
 }
 
 void 
-stack_flush()
+stack_flush(stack_item_free_t ifree)
 {
 	struct lst *next;
 
 	for (; stack != NULL; stack = next) {
 		next = stack->next;
+		ifree(stack->data);
 		free(stack);
 	}
 }

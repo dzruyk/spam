@@ -102,8 +102,6 @@ eval_process(eval_t *left, eval_t *right, tok_t opcode)
 	return ev;
 }
 
-// FIXME PLZ
-//
 ret_t
 eval_get_val(int *res, eval_t *eval)
 {
