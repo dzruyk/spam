@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "id_table.h"
 #include "helper_funcs.h"
+#include "keyword.h"
 #include "lex.h"
 
 extern struct hash_table *identifier;
@@ -67,6 +67,7 @@ get_next_token()
 	}
 	if (isalpha(peek)) {
 		id_table_item_t *nitem;
+		keyword_t kword;
 		char *s = NULL;
 		char *tmp;
 		int used, len;
@@ -82,11 +83,20 @@ get_next_token()
 			s[used++] = peek;
 			peek = fgetc(stdin);
 		} while(isdigit(peek) || isalpha(peek));
+
 		//FIXME: now we cant have id with _
+
 		s[used++] = '\0';
 		if ((tmp = realloc(s, used)) == NULL)
 			print_warn_and_die("realloc_err");
 		s = tmp;
+
+		if ((kword = keyword_table_lookup(s)) != KEYWORD_UNKNOWN) {
+			free(s);
+			lex_item.id = TOK_KEYWORD;
+			lex_item.op = kword;
+			return TOK_KEYWORD;
+		}
 
 		if ((nitem = id_table_lookup(s)) == NULL) {
 			nitem = malloc_or_die(sizeof(*nitem));
@@ -103,60 +113,136 @@ get_next_token()
 		
 		return TOK_ID;
 	}
-
+	//FIXME:
+	// mb need flush peek in composite tokens
 	switch (peek) {
 	case '=':
-		peek = ' ';
-		lex_item.id = TOK_AS;
-		lex_item.op = TOK_AS;
+		peek = fgetc(stdin);
+		if (peek == '=') {
+			lex_item.id = lex_item.op = TOK_EQ;
+			peek = ' ';
+			return TOK_EQ;
+		}
+		lex_item.id = lex_item.op = TOK_AS;
+		
 		return TOK_AS;
+	case '!':
+		peek = fgetc(stdin);
+		if (peek == '=') {
+			peek = ' ';
+			lex_item.id = lex_item.op = TOK_NEQ;
+			
+			return TOK_NEQ;
+		}
+		lex_item.id = lex_item.op = TOK_NOT;
+
+		return TOK_NOT;
 	case '<':
-		lex_item.id = TOK_RELOP;
 		peek = fgetc(stdin);
-		if (peek == '=')
-			lex_item.op = RELOP_LE;
-		else
-			lex_item.op = RELOP_LO;
-		return TOK_RELOP;
+		if (peek == '=') {
+			peek = ' ';
+			lex_item.id = lex_item.op = TOK_LE;
+			
+			return TOK_LE;
+		}
+		lex_item.op = TOK_LO;
+		
+		return TOK_LO;
 	case '>':
-		lex_item.id = TOK_RELOP;
 		peek = fgetc(stdin);
-		if (peek == '=')
-			lex_item.op = RELOP_GE;
-		else
-			lex_item.op = RELOP_GR;
-		return TOK_RELOP;
-	case '+':
-		peek = ' ';
-		lex_item.id = lex_item.op = TOK_PLUS;
-		return TOK_PLUS;
-	case '-':
-		peek = ' ';
-		lex_item.id = lex_item.op = TOK_MINUS;
-		return TOK_MINUS;
+		if (peek == '=') {
+			peek = ' ';
+			lex_item.id = lex_item.op = TOK_GE;
+			
+			return TOK_GE;
+		}
+		lex_item.id = lex_item.op = TOK_GR;
+		
+		return TOK_GR;
+	case '&':
+		peek = fgetc(stdin);
+		if (peek == '&') {
+			peek = ' ';
+			lex_item.id = lex_item.op = TOK_L_AND;
+			
+			return TOK_L_AND;
+		}
+		lex_item.id = lex_item.op = TOK_B_AND;
+		
+		return TOK_B_AND;
+	case '|':
+		peek = fgetc(stdin);
+		if (peek == '|') {
+			peek = ' ';
+			lex_item.id = lex_item.op = TOK_L_OR;
+			
+			return TOK_L_OR;
+		}
+		lex_item.id = lex_item.op = TOK_B_OR;
+		
+		return TOK_B_OR;
 	case '(':
 		peek = ' ';
 		lex_item.id = lex_item.op = TOK_LPAR;
+		
 		return TOK_LPAR;
 	case ')':
 		peek = ' ';
 		lex_item.id = lex_item.op = TOK_RPAR;
+		
 		return TOK_RPAR;
+	case '[':
+		peek = ' ';
+		lex_item.id = lex_item.op = TOK_LBRACKET;
+		
+		return TOK_LBRACKET;
+	case ']':
+		peek = ' ';
+		lex_item.id = lex_item.op = TOK_RBRACKET;
+		
+		return TOK_RBRACKET;
+	case '{':
+		peek = ' ';
+		lex_item.id = lex_item.op = TOK_LBRACE;
+		
+		return TOK_LBRACE;
+	case '}':
+		peek = ' ';
+		lex_item.id = lex_item.op = TOK_RBRACE;
+		
+		return TOK_RBRACE;
+	case ',':
+		peek = ' ';
+		lex_item.id = lex_item.op = TOK_COMMA;
+	case '+':
+		peek = ' ';
+		lex_item.id = lex_item.op = TOK_PLUS;
+		
+		return TOK_PLUS;
+	case '-':
+		peek = ' ';
+		lex_item.id = lex_item.op = TOK_MINUS;
+		
+		return TOK_MINUS;
 	case '*':
 		peek = ' ';
 		lex_item.id = lex_item.op = TOK_MUL;
+		
 		return TOK_MUL;
 	case '/':
 		peek = ' ';
 		lex_item.id = lex_item.op = TOK_DIV;
+		
 		return TOK_DIV;
 	case '\n':
 		peek = ' ';
 		lex_item.id = lex_item.op = TOK_EOL;
+		
 		return TOK_EOL;
 	case EOF:
 		peek = ' ';
 		lex_item.id = lex_item.op = TOK_EOF;
+		
 		return TOK_EOF;
 	}
 	

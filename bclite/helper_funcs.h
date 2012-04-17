@@ -11,7 +11,10 @@ inline void print_warn_and_die(char *str);
 
 #define print_warn_and_die(fmt, arg...) \
 do { \
-	fprintf(stderr, "warning:"fmt, \
+	fprintf(stderr, "%s %d %s warning:"fmt, \
+			__FILE__, \
+			__LINE__, \
+			__FUNCTION__, \
 			##arg); \
 	exit(1); \
 } while (0)
@@ -20,7 +23,10 @@ do { \
 
 #define print_warn(fmt, arg...) \
 do { \
-	fprintf(stderr, "warning:"fmt, \
+	fprintf(stderr, "%s %d %s warning:"fmt, \
+			__FILE__, \
+			__LINE__, \
+			__FUNCTION__, \
 			##arg); \
 	fflush(stderr); \
 } while (0)

@@ -18,26 +18,71 @@ SYNTAX:
 
 
 ADAPTED SYNTAX:
-	prog 	->	statement
+	prog 		->	body
+
 	
-	statement->	expr = statement
-		 |	expr
 
-	expr	->	term expr_rest
+	decls		->	func EOL decls
+			|	something EOL decls
+			|	EMPTY
 
-	expr_rest->	+ term expr_rest
-		|	- term expr_rest
-		|	EMPTY
+	func		->	"def" id(list_decl) block
 
-	term	->	factor term_rest
+	list_decl	->	id, list_decl_rest
+			|	EMPTY
 	
-	term_rest->	* factor term_rest
-		|	/ factor term_rest
-		|	EMPTY
+	list_decl_rest	->	, id list_call_rest
+			|	EMPTY
+	
+	stmts		->	statement EOL stmts
+	
+	statesent	->	IF (boolian) block ELSE block
+			|	DO block WHILE (boolian)
+			|	WHILE(boolian) block
+			|	FOR (boolian; boolian; boolian) block
+			|	identifier = boolian						//FIXME!
+			|	block
 
-	factor	->	number
-		|	id
-		|	(statement)
+	block		->	{stmts block}
+			|	EMPTY								//FIXME!
+
+	boolian		->	join || boolian
+	
+	join		->	equity && join 
+	
+	equity		->	rel == equity
+			|	rel != equity	//NOT ACTIVE NOW
+
+	rel		->	expr > rel
+			|	expr >= rel
+			|	expr < rel
+			|	expr <= rel
+	
+	expr		->	term expr_rest
+
+	expr_rest	->	+ term expr_rest
+			|	- term expr_rest
+			|	EMPTY
+
+	term		->	factor term_rest
+	
+	term_rest	->	* factor term_rest
+			|	/ factor term_rest
+			|	EMPTY
+
+	factor		->	identifier
+			|	id (list_call)		//function call
+			|	number
+			|	(boolian)
+			|	EMPTY
+
+	identifier	->	id
+			|	id[boolian]			//array reference
+	
+	list_call	->	boolian, list_rest
+			|	EMPTY
+	list_call_rest	->	, boolian list_call_rest
+			|	EMPTY
 
 
 TERMINALS:
@@ -51,5 +96,14 @@ TERMINALS:
 	MUL
 	DIV
 	EOL
+	EOF
 	UNKNOWN
+
+
+REMARK:
+1)	in	id[statesment] statesment cant be EMPTY
+2)	in functions we cant define functions
+3)	we can assign only to variables
+
+
 

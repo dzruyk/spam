@@ -43,6 +43,8 @@ eval_free(eval_t *eval)
 	case EVAL_ID:
 		free(eval);
 		break;
+	default:
+		print_warn_and_die("WIP\n");
 	}
 }
 
@@ -61,13 +63,16 @@ eval_assign(eval_t *left, eval_t *right)
 		eval_get_val(&res, right);
 		left->item->id = ID_NUM;
 		left->item->value = res;
+	} else {
+		print_warn("eval_assign: something wrong\n");
+		return NULL;
 	}
 	
 	return left;
 }
 
 eval_t *
-eval_process(eval_t *left, eval_t *right, tok_t opcode)
+eval_process_op(eval_t *left, eval_t *right, tok_t opcode)
 {
 	eval_t *ev;
 	int l, r, res;
@@ -101,6 +106,51 @@ eval_process(eval_t *left, eval_t *right, tok_t opcode)
 
 	return ev;
 }
+
+eval_t *
+eval_process_bool(eval_t *left, eval_t *right, tok_t opcode)
+{
+	eval_t *ev;
+	int l, r, res;
+	
+	if (eval_get_val(&l, left) != ret_ok)
+		return NULL;
+	if (eval_get_val(&r, right) != ret_ok)
+		return NULL;
+
+	switch(opcode) {
+	case TOK_EQ:
+		res = (l == r);
+		break;
+	case TOK_NEQ:
+		res = (l != r);
+		break;
+	case TOK_GR:
+		res = (l > r);
+		break;
+	case TOK_LO:
+		res = (l < r);
+		break;
+	case TOK_GE:
+		res = (l >= r);
+		break;
+	case TOK_LE:
+		res = (l <= r);
+		break;
+	case TOK_L_AND:
+		res = (l && r);
+		break;
+	case TOK_L_OR:
+		res = (l || r);
+		break;
+	default:
+		print_warn_and_die("unsupported tok!\n");
+	}
+	ev = eval_num_new(res);
+
+	return ev;
+}
+
 
 ret_t
 eval_get_val(int *res, eval_t *eval)

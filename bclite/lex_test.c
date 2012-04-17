@@ -29,7 +29,7 @@ main()
 {
 	int res;
 
-	id_table_create();
+	id_tables_init();
 
 	do {
 		res = get_next_token();
@@ -45,7 +45,7 @@ main()
 		printf("\n");
 	} while(/*res != TOK_EOL && */res != TOK_UNKNOWN);
 	
-	id_table_destroy();
+	id_tables_destroy();
 	
 	return 0;
 }

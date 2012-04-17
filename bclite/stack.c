@@ -6,17 +6,17 @@
 //FIXME: may be need to implement stack with dynamic array
 //	 but I'm so tired...)
 
-struct lst {
-	struct lst *next;
+struct stack {
+	struct stack *next;
 	void *data;
 };
 
-struct lst *stack = NULL;
+struct stack *stack = NULL;
 
 void 
 stack_push(void *data)
 {
-	struct lst *nitem;
+	struct stack *nitem;
 
 	if (data == NULL)
 		print_warn_and_die("INTERNAL_ERROR: try to push NULL in stack\n");
@@ -31,7 +31,7 @@ stack_push(void *data)
 void *
 stack_pop()
 {
-	struct lst *nitem;
+	struct stack *nitem;
 	void *data;
 
 	if (stack == NULL)
@@ -49,7 +49,7 @@ stack_pop()
 void 
 stack_flush(stack_item_free_t ifree)
 {
-	struct lst *next;
+	struct stack *next;
 
 	for (; stack != NULL; stack = next) {
 		next = stack->next;

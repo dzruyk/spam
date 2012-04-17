@@ -1,8 +1,7 @@
-#ifndef _STACK_H_
-#define _STACK_H_
+#ifndef __STACK_H__
+#define __STACK_H__
 
 typedef void (*stack_item_free_t)(void *item);
-
 
 void stack_push(void *data);
 

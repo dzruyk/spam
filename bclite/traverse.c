@@ -3,10 +3,11 @@
 #include "common.h"
 #include "eval.h"
 #include "helper_funcs.h"
+#include "id_table.h"
 #include "lex.h"
 #include "macros.h"
 #include "stack.h"
-#include "syn_tree.h"
+
 #include "traverse.h"
 
 static void traverse(syn_tree_t *tree);
@@ -43,10 +44,10 @@ traverse_id(syn_tree_t *tree)
 static void
 traverse_as(syn_tree_t *tree)
 {
-	syn_tree_op_t *optree;
+	syn_tree_as_t *optree;
 	eval_t *left, *right, *res;
 
-	optree = (syn_tree_op_t*)tree;
+	optree = (syn_tree_as_t*)tree;
 	traverse(SYN_TREE(optree)->left);	
 	traverse(SYN_TREE(optree)->right);
 
@@ -75,7 +76,7 @@ traverse_op(syn_tree_t *tree)
 	syn_tree_op_t *optree;
 	eval_t *left, *right, *res;
 
-	optree = (syn_tree_op_t*)tree;
+	optree = (syn_tree_op_t *)tree;
 	traverse(SYN_TREE(optree)->left);	
 	traverse(SYN_TREE(optree)->right);
 
@@ -85,18 +86,38 @@ traverse_op(syn_tree_t *tree)
 	right = stack_pop();
 	left = stack_pop();
 	
-	switch(optree->opcode) {
-	case TOK_MUL:
-	case TOK_DIV:
-	case TOK_PLUS:
-	case TOK_MINUS:
-		res = eval_process(left, right, optree->opcode);
-		eval_free(left);
-		eval_free(right);
-		break;
-	default:
-		print_warn_and_die("INTERNAL_EROR: can't traverse this operation\n");
+	res = eval_process_op(left, right, optree->opcode);
+	eval_free(left);
+	eval_free(right);
+	
+	if (res == NULL) {
+		nerrors++;
+		return;
 	}
+	
+	stack_push(res);
+}
+
+static void
+traverse_bool(syn_tree_t *tree)
+{
+	syn_tree_bool_t *btree;
+	eval_t *left, *right, *res;
+
+	btree = (syn_tree_bool_t *)tree;
+	traverse(SYN_TREE(btree)->left);	
+	traverse(SYN_TREE(btree)->right);
+
+	if (nerrors != 0)
+		return;
+	
+	right = stack_pop();
+	left = stack_pop();
+
+	res = eval_process_bool(left, right, btree->opcode);
+	eval_free(left);
+	eval_free(right);
+
 	if (res == NULL) {
 		nerrors++;
 		return;
@@ -117,6 +138,7 @@ struct {
 	traverse_cb callback;
 } node_type [] = {
 	{SYN_TREE_AS, traverse_as},
+	{SYN_TREE_BOOL, traverse_bool},
 	{SYN_TREE_OP, traverse_op},
 	{SYN_TREE_ID, traverse_id},
 	{SYN_TREE_NUM, traverse_num},

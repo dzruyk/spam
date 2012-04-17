@@ -1,8 +1,7 @@
-#ifndef _SYNTAX_H_
-#define _SYNTAX_H_
+#ifndef __SYNTAX_H__
+#define __SYNTAX_H__
 
 #include "common.h"
-#include "syn_tree.h"
 
 int syntax_is_eof;
 
