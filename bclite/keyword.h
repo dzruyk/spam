@@ -1,14 +1,14 @@
-#ifndef __KEYWORD_H__
-#define __KEYWORD_H__
+#ifndef __KEY_H__
+#define __KEY_H__
 
 typedef enum {
-	KEYWORD_DEF,		//function definition
-	KEYWORD_IF,
-	KEYWORD_ELSE,
-	KEYWORD_FOR,
-	KEYWORD_DO,
-	KEYWORD_WHILE,
-	KEYWORD_UNKNOWN,
+	KEY_DEF,		//function definition
+	KEY_IF,
+	KEY_ELSE,
+	KEY_FOR,
+	KEY_DO,
+	KEY_WHILE,
+	KEY_UNKNOWN,
 } keyword_t;
 
 void keyword_table_init();

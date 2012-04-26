@@ -17,12 +17,12 @@ typedef struct {
 struct hash_table *key_table;
 
 keyword_table_item_t keywords[] =  {
-	{KEYWORD_DEF, "def"},
-	{KEYWORD_IF, "if"},
-	{KEYWORD_ELSE, "else"},
-	{KEYWORD_FOR, "for"},
-	{KEYWORD_DO, "do"},
-	{KEYWORD_WHILE, "while"},
+	{KEY_DEF, "def"},
+	{KEY_IF, "if"},
+	{KEY_ELSE, "else"},
+	{KEY_FOR, "for"},
+	{KEY_DO, "do"},
+	{KEY_WHILE, "while"},
 };
 
 
@@ -115,7 +115,7 @@ keyword_table_lookup(char *name)
 	keyword_table_item_t *res;
 
 	if (hash_table_lookup(key_table, name, (void **)&res) != ret_ok)
-		return KEYWORD_UNKNOWN;
+		return KEY_UNKNOWN;
 	else
 		return res->id;
 }

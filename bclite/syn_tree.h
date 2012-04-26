@@ -45,19 +45,11 @@ typedef struct {
 	id_table_item_t *item;
 } syn_tree_id_t;
 
-
 typedef struct {
 	syn_tree_t tree;
-	arr_t arr;
+	syn_tree_t **arr;
+	int sz;
 } syn_tree_arr_t;
-
-
-typedef struct {
-	syn_tree_t tree;
-	int opcode;
-} syn_tree_bool_t;
-
-
 
 typedef struct {
 	syn_tree_t tree;
@@ -70,6 +62,8 @@ syn_tree_t *syn_tree_num_new(int num);
 syn_tree_t *syn_tree_id_new(id_table_item_t *item);
 
 
+syn_tree_t *syn_tree_arr_new(syn_tree_t **arr, int sz);
+
 syn_tree_t *syn_tree_op_new(syn_tree_t* left, syn_tree_t *right, int opcode);
 
 
@@ -77,6 +71,7 @@ syn_tree_t *syn_tree_as_new(syn_tree_t *left, syn_tree_t *right);
 
 
 syn_tree_t *syn_tree_stub_new();
+
 
 void syn_tree_unref(syn_tree_t *tree);
 

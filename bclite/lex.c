@@ -51,7 +51,7 @@ get_next_token()
 			print_warn_and_die("realloc_err");
 		s = tmp;
 
-		if ((kword = keyword_table_lookup(s)) != KEYWORD_UNKNOWN) {
+		if ((kword = keyword_table_lookup(s)) != KEY_UNKNOWN) {
 			free(s);
 			lex_item.id = TOK_KEYWORD;
 			lex_item.op = kword;

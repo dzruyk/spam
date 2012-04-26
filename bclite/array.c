@@ -1,4 +1,42 @@
 
+#include "array.h"
+#include "helper_funcs.h"
 
+arr_t *
+arr_new(int n, int item_sz)
+{
+	arr_t *arr;
+
+	arr = malloc_or_die(sizeof(*arr));
+
+	arr->n = n;
+	arr->item_sz = item_sz;
+	arr->ptr = malloc_or_die(item_sz * n);
+
+	return arr;
+}
+
+//WARNING: be care when will introduce large numbers
+ret_t
+arr_set_item(arr_t *arr, int ind, int value)
+{
+	int *p;
+
+	if (arr->n >= ind || ind < 0)
+		return ret_invalid;
+	
+	p = arr->ptr + arr->item_sz * ind;
+
+	*p = value;
+
+	return ret_ok;
+}
+
+void
+arr_free(arr_t *arr)
+{
+	free(arr->ptr);
+	free(arr);
+}
 
 

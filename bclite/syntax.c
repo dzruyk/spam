@@ -25,6 +25,7 @@ static syn_tree_t *identifier();
 
 static syn_tree_t *call_function();
 static syn_tree_t *access_array();
+static syn_tree_t *array_init();
 
 extern struct lex_item lex_item;
 extern struct lex_item lex_item_prev;
@@ -72,7 +73,6 @@ match(const tok_t expect)
 	return FALSE;
 }
 
-// Now we flush tree here if some errors occured
 ret_t
 program_start(syn_tree_t **tree)
 {
@@ -108,17 +108,32 @@ statesment()
 	if (result == NULL)
 		return NULL;
 	
-	if (match(TOK_AS)) {
-		right = statesment();
-		if (right == NULL) {
+	if (match(TOK_AS) == FALSE)
+		return result;
+	
+
+	//ASSIGNMENT
+	
+	//array
+	if (match(TOK_LBRACE)) {
+		right = array_init();
+		
+		if (match(TOK_RBRACE) == FALSE) {
+			print_warn("right bracket missed\n");
 			nerrors++;
-			print_warn("uncomplited as expression\n");
-			right = syn_tree_stub_new();
 		}
 
-		result = syn_tree_as_new(result, right);
+		return syn_tree_as_new(result, right);
 	}
-	return result;
+
+	right = statesment();
+	if (right == NULL) {
+		nerrors++;
+		print_warn("uncomplited as expression\n");
+		right = syn_tree_stub_new();
+	}
+
+	return syn_tree_as_new(result, right);
 }
 
 static syn_tree_t *
@@ -343,17 +358,7 @@ factor()
 		
 		return syn_tree_num_new(lex_item_prev.num);
 
-	}/* else if (match(TOK_LBRACKET)) {
-		stat = tuple_set();
-		
-		if (match(TOK_RBRACKET) == FALSE) {
-			print_warn("right bracket missed\n");
-			nerrors++;
-			return stat;
-		}
-		
-		return stat;
-	} */else if (match(TOK_LPAR)) {
+	}  else if (match(TOK_LPAR)) {
 		stat = statesment();
 		
 		if (match(TOK_RPAR) == FALSE) {
@@ -413,33 +418,22 @@ access_array()
 }
 
 static syn_tree_t *
-tuple_set()
+array_init()
 {
 	syn_tree_t *item, **arr;
-	arr_t *arr_item;
 
-	print_warn_and_die("WIP!\n");
-/*	int i, len, sz;
+	int i, len, sz;
 	
 	arr = NULL;
 	len = sz = 0;
 
-	item = logic_disj();
-	
-	if (item == NULL)
-		return NULL;
-	
-	while (TRUE) {
-		if (match(TOK_COMMA) == FALSE)
-			break;
-
+	do {
 		item = logic_disj();
 		if (item == NULL) {
 			nerrors++;
 			print_warn("uncomplited tuple\n");
 			goto error;
 		}
-
 		if (len >= sz) {
 			syn_tree_t **tmp;
 
@@ -450,11 +444,12 @@ tuple_set()
 				print_warn_and_die("realloc_err\n");
 			arr = tmp;
 		}
+		
 		arr[len++] = item;
-	}
 
-	arr_item = arr_item_new(len, arr);
-	return syn_tree_arr_new(arr_item);
+	} while (match(TOK_COMMA) != FALSE);
+
+	return syn_tree_arr_new(arr, len);
 
 error:
 	for (i = 0; i < len; i++)
@@ -462,6 +457,5 @@ error:
 	
 	free(arr);
 	return syn_tree_stub_new();
-*/
 }
 

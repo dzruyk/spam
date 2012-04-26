@@ -26,7 +26,6 @@ main(int argc, char *argv[])
 	} while (syntax_is_eof != 1);
 
 	id_tables_destroy();
-	
 	keyword_table_destroy();
 
 	return 0;

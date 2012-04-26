@@ -1,13 +1,19 @@
 #ifndef ARRAY_H_
 #define ARRAY_H_
 
+#include "common.h"
+
 typedef struct {
-	//может стоит переть тип из id_table
-	int type;
-	int nitem;
+	int n;
 	int item_sz;
 	void *ptr;
 } arr_t;
+
+arr_t *arr_new(int n, void *ptr);
+
+ret_t arr_set_item(arr_t *arr, int ind, int value);
+
+void arr_free(arr_t *arr);
 
 #endif
 

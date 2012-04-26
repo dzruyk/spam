@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+#include "array.h"
 #include "common.h"
 #include "eval.h"
 #include "helper_funcs.h"
@@ -22,7 +23,7 @@ traverse_num(syn_tree_t *tree)
 	eval_t *ev;
 	int val;
 	
-	val = ((syn_tree_num_t*)tree)->num;
+	val = ((syn_tree_num_t *)tree)->num;
 	
 	ev = eval_num_new(val);
 
@@ -32,13 +33,37 @@ traverse_num(syn_tree_t *tree)
 static void
 traverse_id(syn_tree_t *tree)
 {
-	id_table_item_t *item;
 	eval_t *ev;
+	id_table_item_t *item;
 
-	item = ((syn_tree_id_t*)tree)->item;
+	item = ((syn_tree_id_t *)tree)->item;
 	
 	ev = eval_id_new(item);
 	stack_push(ev);
+}
+
+static void
+traverse_arr(syn_tree_t *tree)
+{
+	eval_t *ev;
+	array_t *arr;
+	syn_tree_t **synarr;
+	int i, sz;
+	
+	synarr = ((syn_tree_arr_t *)tree)->arr;
+	sz = ((syn_tree_arr_t *)tree)->sz;
+
+	//size of int
+	arr = arr_new(sz, sizeof(int));
+
+	for (i = 0; i < sz; i++) {
+		traverse(synarr);
+
+	}
+	
+	print_warn_and_die("WIP\n");
+
+	ev = eval_arr_new(arr);
 }
 
 static void
@@ -47,7 +72,7 @@ traverse_as(syn_tree_t *tree)
 	syn_tree_as_t *optree;
 	eval_t *left, *right, *res;
 
-	optree = (syn_tree_as_t*)tree;
+	optree = (syn_tree_as_t *)tree;
 	traverse(SYN_TREE(optree)->left);	
 	traverse(SYN_TREE(optree)->right);
 
@@ -111,6 +136,7 @@ struct {
 } node_type [] = {
 	{SYN_TREE_AS, traverse_as},
 	{SYN_TREE_OP, traverse_op},
+	{SYN_TREE_ARR, traverse_arr},
 	{SYN_TREE_ID, traverse_id},
 	{SYN_TREE_NUM, traverse_num},
 	{SYN_TREE_STUB, traverse_stub},
@@ -145,31 +171,28 @@ traverse_prog(syn_tree_t *tree)
 	syn_tree_unref(tree);
 
 	if (nerrors != 0) {
-		stack_flush((stack_item_free_t)eval_free);
+		stack_flush((stack_item_free_t )eval_free);
 		return ret_err;
 	}
 	return ret_ok;
 }
 
-//pop first item of stack and prints it
 void
 traverse_print_result()
 {
 	eval_t *tmp;
 	int val;
 
-	tmp = (eval_t*)stack_pop();
+	while ((tmp = (eval_t *)stack_pop()) != NULL) {
+	
+		if (eval_get_val(&val, tmp) != ret_ok) {
+			eval_free(tmp);
+			break;
+		}
 
-	if (tmp == NULL)
-		return;
+		printf("%d\n", val);
 
-	if (eval_get_val(&val, tmp) != ret_ok) {
 		eval_free(tmp);
-		return;
 	}
-
-	printf("%d\n", val);
-
-	eval_free(tmp);
 }
 
