@@ -1,6 +1,7 @@
 #ifndef __EVAL_H__
 #define __EVAL_H__
 
+#include "array.h"
 #include "id_table.h"
 #include "lex.h"
 
@@ -17,12 +18,15 @@ typedef struct {
 	union {
 		int value;
 		id_table_item_t *item;
+		arr_t *arr;
 	};
 } eval_t;
 
 eval_t *eval_id_new();
 
 eval_t *eval_num_new();
+
+eval_t *eval_arr_new(arr_t *arr);
 
 void eval_free(eval_t *eval);
 

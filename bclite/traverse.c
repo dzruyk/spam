@@ -46,9 +46,9 @@ static void
 traverse_arr(syn_tree_t *tree)
 {
 	eval_t *ev;
-	array_t *arr;
+	arr_t *arr;
 	syn_tree_t **synarr;
-	int i, sz;
+	int i, sz, res;
 	
 	synarr = ((syn_tree_arr_t *)tree)->arr;
 	sz = ((syn_tree_arr_t *)tree)->sz;
@@ -57,13 +57,19 @@ traverse_arr(syn_tree_t *tree)
 	arr = arr_new(sz, sizeof(int));
 
 	for (i = 0; i < sz; i++) {
-		traverse(synarr);
+		traverse(synarr[i]);
+		if ((ev = stack_pop()) == NULL)
+			print_warn_and_die("unexpected error\n");
+		
+		if (eval_get_val(&res, ev) != ret_ok)
+			print_warn_and_die("unexpected error\n");
 
+		if (arr_set_item(arr, i, res) != ret_ok)
+			print_warn_and_die("cant set item\n");
 	}
 	
-	print_warn_and_die("WIP\n");
-
 	ev = eval_arr_new(arr);
+	stack_push(ev);
 }
 
 static void

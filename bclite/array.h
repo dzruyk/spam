@@ -9,7 +9,7 @@ typedef struct {
 	void *ptr;
 } arr_t;
 
-arr_t *arr_new(int n, void *ptr);
+arr_t *arr_new(int n, int item_sz);
 
 ret_t arr_set_item(arr_t *arr, int ind, int value);
 

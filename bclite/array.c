@@ -22,7 +22,7 @@ arr_set_item(arr_t *arr, int ind, int value)
 {
 	int *p;
 
-	if (arr->n >= ind || ind < 0)
+	if (ind >= arr->n || ind < 0)
 		return ret_invalid;
 	
 	p = arr->ptr + arr->item_sz * ind;

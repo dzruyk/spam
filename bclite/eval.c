@@ -31,6 +31,18 @@ eval_num_new(int value)
 	return res;
 }
 
+eval_t *
+eval_arr_new(arr_t *arr)
+{
+	eval_t *res;
+	
+	res = malloc_or_die(sizeof(*res));
+	res->type = EVAL_ARR;
+	res->arr = arr;
+
+	return res;
+}
+
 void
 eval_free(eval_t *eval)
 {
@@ -47,7 +59,6 @@ eval_free(eval_t *eval)
 		print_warn_and_die("WIP\n");
 	}
 }
-
 
 //WARNING: now i return modified left operand
 //
@@ -150,6 +161,9 @@ eval_get_val(int *res, eval_t *eval)
 		} else if (eval->item->id == ID_NUM)
 			value = eval->item->value;
 		break;
+	case EVAL_ARR:
+		print_warn_and_die("WIP\n");
+	
 	default:
 		print_warn_and_die("INTERNAL ERROR: cant get value\n");
 	}

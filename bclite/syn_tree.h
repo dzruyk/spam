@@ -5,6 +5,28 @@
 
 #include "id_table.h"
 
+/*
+// think, mb need to replace tokens by opcodes in syntax,syn_tree and others
+//
+typedef enum {
+	OP_AS,
+	OP_NOT,
+	
+	OP_EQ,
+	OP_NEQ,
+	OP_GR,
+	OP_LO,
+	OP_GE,
+	OP_LE,
+	OP_L_AND,
+	OP_L_OR,
+	
+	OP_B_AND,
+	OP_B_OR,
+
+} opcode_t;
+*/
+
 typedef enum {
 	SYN_TREE_AS,
 	SYN_TREE_OP,

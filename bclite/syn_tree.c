@@ -18,12 +18,12 @@ syn_tree_free(syn_tree_t *tree)
 	switch (tree->type) {
 	case SYN_TREE_NUM:
 	case SYN_TREE_ID:
-		break
+		break;
 	case SYN_TREE_ARR:
 		//CHECK_ME
 		arr = (syn_tree_arr_t *)tree;
 		n = arr->sz;
-		for (i = 0; i < sz; i++)
+		for (i = 0; i < n; i++)
 			syn_tree_free(arr->arr[i]);
 		break;
 	case SYN_TREE_OP:
