@@ -52,9 +52,7 @@ struct lex_item {
 	};
 };
 
-void tok_next();
-
-inline boolean_t match(const tok_t expect);
+struct lex_item lex_item;
 
 tok_t get_next_token();
 

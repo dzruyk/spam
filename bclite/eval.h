@@ -28,10 +28,9 @@ void eval_free(eval_t *eval);
 
 eval_t *eval_process_op(eval_t *left, eval_t *right, tok_t opcode);
 
-eval_t *eval_process_bool(eval_t *left, eval_t *right, tok_t opcode);
-
 eval_t * eval_assign(eval_t *left, eval_t *right);
 
 ret_t eval_get_val(int *res, eval_t *eval);
+
 #endif
 

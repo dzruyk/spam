@@ -99,34 +99,6 @@ traverse_op(syn_tree_t *tree)
 }
 
 static void
-traverse_bool(syn_tree_t *tree)
-{
-	syn_tree_bool_t *btree;
-	eval_t *left, *right, *res;
-
-	btree = (syn_tree_bool_t *)tree;
-	traverse(SYN_TREE(btree)->left);	
-	traverse(SYN_TREE(btree)->right);
-
-	if (nerrors != 0)
-		return;
-	
-	right = stack_pop();
-	left = stack_pop();
-
-	res = eval_process_bool(left, right, btree->opcode);
-	eval_free(left);
-	eval_free(right);
-
-	if (res == NULL) {
-		nerrors++;
-		return;
-	}
-	
-	stack_push(res);
-}
-
-static void
 traverse_stub(syn_tree_t *tree)
 {
 	nerrors++;
@@ -138,7 +110,6 @@ struct {
 	traverse_cb callback;
 } node_type [] = {
 	{SYN_TREE_AS, traverse_as},
-	{SYN_TREE_BOOL, traverse_bool},
 	{SYN_TREE_OP, traverse_op},
 	{SYN_TREE_ID, traverse_id},
 	{SYN_TREE_NUM, traverse_num},

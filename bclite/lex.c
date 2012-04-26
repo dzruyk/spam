@@ -6,46 +6,6 @@
 #include "keyword.h"
 #include "lex.h"
 
-extern struct hash_table *identifier;
-
-struct lex_item lex_item;
-struct lex_item lex_item_prev;
-tok_t current_tok;
-
-static void
-update_prev_token()
-{
-	lex_item_prev.id = lex_item.id;
-	switch(lex_item.id) {
-	case TOK_ID:
-		lex_item_prev.item = lex_item.item;
-		break;
-	case TOK_NUM:
-		lex_item_prev.num = lex_item.num;
-		break;
-	default:
-		lex_item_prev.op = lex_item.op;
-	}
-}
-
-void
-tok_next()
-{
-	update_prev_token();
-	current_tok = get_next_token();
-}
-
-inline boolean_t
-match(const tok_t expect)
-{
-	if (current_tok == expect) {
-		tok_next();
-		return TRUE;
-	}
-
-	return FALSE;
-}
-
 tok_t
 get_next_token()
 {

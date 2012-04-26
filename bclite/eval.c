@@ -99,26 +99,6 @@ eval_process_op(eval_t *left, eval_t *right, tok_t opcode)
 	case TOK_MINUS:
 		res = l - r;
 		break;
-	default:
-		print_warn_and_die("unsupported tock recognised when eval\n");
-	}
-	ev = eval_num_new(res);
-
-	return ev;
-}
-
-eval_t *
-eval_process_bool(eval_t *left, eval_t *right, tok_t opcode)
-{
-	eval_t *ev;
-	int l, r, res;
-	
-	if (eval_get_val(&l, left) != ret_ok)
-		return NULL;
-	if (eval_get_val(&r, right) != ret_ok)
-		return NULL;
-
-	switch(opcode) {
 	case TOK_EQ:
 		res = (l == r);
 		break;
@@ -144,13 +124,12 @@ eval_process_bool(eval_t *left, eval_t *right, tok_t opcode)
 		res = (l || r);
 		break;
 	default:
-		print_warn_and_die("unsupported tok!\n");
+		print_warn_and_die("unsupported tock recognised when eval\n");
 	}
 	ev = eval_num_new(res);
 
 	return ev;
 }
-
 
 ret_t
 eval_get_val(int *res, eval_t *eval)

@@ -6,7 +6,6 @@
 #include "macros.h"
 #include "syn_tree.h"
 
-
 static void
 syn_tree_num_free(syn_tree_t *tree)
 {
@@ -54,18 +53,6 @@ syn_tree_stub_free(syn_tree_t *tree)
 	free(tree);
 }
 
-static void
-syn_tree_bool_free(syn_tree_t *tree)
-{
-	return_if_fail(tree != NULL);
-	
-	syn_tree_unref(tree->left);
-	syn_tree_unref(tree->right);
-	
-	free(tree);
-
-}
-
 syn_tree_t *
 syn_tree_num_new(int num)
 {
@@ -97,6 +84,20 @@ syn_tree_id_new(id_table_item_t *item)
 
 	return SYN_TREE(res);
 }
+/*
+syn_tree_t *
+syn_tree_arr_new(array_t *arr)
+{
+	syn_tree_arr_t *res;
+
+	res = malloc_or_die(sizeof(*res));
+	
+	SYN_TREE(res)->type = SYN_TREE_ARR;
+	SYN_TREE(res)->destructor = syn_tree_arr_free();
+
+	res->arr = arr;
+}
+*/
 
 syn_tree_t *
 syn_tree_op_new(syn_tree_t *left, syn_tree_t *right,int opcode)
@@ -129,25 +130,6 @@ syn_tree_as_new(syn_tree_t *left, syn_tree_t *right)
 
 	return SYN_TREE(res);
 }
-
-
-syn_tree_t *
-syn_tree_bool_new(syn_tree_t *left, syn_tree_t *right, int opcode)
-{
-	syn_tree_bool_t *res;
-	
-	res = malloc_or_die(sizeof(*res));
-
-	SYN_TREE(res)->type = SYN_TREE_BOOL;
-	SYN_TREE(res)->left = left;
-	SYN_TREE(res)->right = right;
-	SYN_TREE(res)->destructor = syn_tree_bool_free;
-	
-	res->opcode = opcode;
-	
-	return SYN_TREE(res);
-}
-
 
 syn_tree_t *
 syn_tree_stub_new()

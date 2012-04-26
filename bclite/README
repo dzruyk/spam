@@ -25,14 +25,16 @@ ADAPTED SYNTAX:
 			|	something EOL decls
 			|	EMPTY
 
+
 	func		->	"def" id(list_decl) block
 
-	list_decl	->	id, list_decl_rest
+	list_decl	->	id list_decl_rest
 			|	EMPTY
 	
 	list_decl_rest	->	, id list_call_rest
 			|	EMPTY
 	
+
 	stmts		->	statement EOL stmts
 	
 	statesent	->	IF (boolean) block ELSE block
@@ -42,6 +44,7 @@ ADAPTED SYNTAX:
 			|	identifier = boolean						//FIXME!
 			|	block
 
+
 	block		->	{stmts block}
 			|	EMPTY								//FIXME!
 
@@ -50,7 +53,7 @@ ADAPTED SYNTAX:
 	join		->	equity && join 
 	
 	equity		->	rel == equity
-			|	rel != equity	//NOT ACTIVE NOW
+			|	rel != equity
 
 	rel		->	expr > rel
 			|	expr >= rel
@@ -70,17 +73,20 @@ ADAPTED SYNTAX:
 			|	EMPTY
 
 	factor		->	identifier
-			|	id (list_call)		//function call
 			|	number
+			|	[ tuple_set ]
 			|	(boolean)
 			|	EMPTY
 
 	identifier	->	id
 			|	id[boolean]			//array reference
+			|	id (tuple_set)			//function call
 	
-	list_call	->	boolean, list_rest
+
+	tuple_set	->	boolean tuple_rest
 			|	EMPTY
-	list_call_rest	->	, boolean list_call_rest
+
+	tuple_rest	->	, boolean tuple_rest
 			|	EMPTY
 
 

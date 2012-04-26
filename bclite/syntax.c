@@ -35,6 +35,43 @@ int syntax_is_eof = 0;
 
 static int nerrors;
 
+struct lex_item lex_item_prev;
+tok_t current_tok;
+
+static void
+update_prev_token()
+{
+	lex_item_prev.id = lex_item.id;
+	switch(lex_item.id) {
+	case TOK_ID:
+		lex_item_prev.item = lex_item.item;
+		break;
+	case TOK_NUM:
+		lex_item_prev.num = lex_item.num;
+		break;
+	default:
+		lex_item_prev.op = lex_item.op;
+	}
+}
+
+static void
+tok_next()
+{
+	update_prev_token();
+	current_tok = get_next_token();
+}
+
+static inline boolean_t
+match(const tok_t expect)
+{
+	if (current_tok == expect) {
+		tok_next();
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
 // Now we flush tree here if some errors occured
 ret_t
 program_start(syn_tree_t **tree)
@@ -95,7 +132,7 @@ logic_disj()
 		return NULL;
 	
 	while (TRUE) {
-		if (!match(TOK_L_OR))
+		if (match(TOK_L_OR) == FALSE)
 			return result;
 
 		right = logic_conj();
@@ -104,7 +141,7 @@ logic_disj()
 			print_warn("uncomplited eq expression\n");
 			right = syn_tree_stub_new();
 		}
-		result = syn_tree_bool_new(result, right, TOK_L_OR);
+		result = syn_tree_op_new(result, right, TOK_L_OR);
 	}
 	return result;
 
@@ -121,7 +158,7 @@ logic_conj()
 		return NULL;
 	
 	while (TRUE) {
-		if(!match(TOK_L_AND))
+		if(match(TOK_L_AND) == FALSE)
 			return result;
 		
 		right = equity();
@@ -130,7 +167,7 @@ logic_conj()
 			print_warn("uncomplited eq expression\n");
 			right = syn_tree_stub_new();
 		}
-		result = syn_tree_bool_new(result, right, TOK_L_AND);
+		result = syn_tree_op_new(result, right, TOK_L_AND);
 	}
 	return result;
 }
@@ -163,7 +200,7 @@ equity()
 			print_warn("uncomplited eq expression\n");
 			right = syn_tree_stub_new();
 		}
-		result = syn_tree_bool_new(result, right, op);
+		result = syn_tree_op_new(result, right, op);
 	}
 	return result;
 
@@ -199,7 +236,7 @@ rel_op()
 			print_warn("uncomplited rel expression\n");
 			right = syn_tree_stub_new();
 		}
-		result = syn_tree_bool_new(result, right, op);
+		result = syn_tree_op_new(result, right, op);
 	}
 }
 
@@ -291,25 +328,46 @@ term_rest(syn_tree_t *left)
 	}
 }
 
+// may be need to return syn_tree_stub_t when RBRACKET or RPAR missed?
+
 static syn_tree_t *
 factor()
 {
 	syn_tree_t *stat;
 	
 	if (match(TOK_ID)) {
+		
 		return 	identifier();
+	
 	} else if (match(TOK_NUM)) {
+		
 		return syn_tree_num_new(lex_item_prev.num);
-	} else if (match(TOK_LPAR)) {
+
+	}/* else if (match(TOK_LBRACKET)) {
+		stat = tuple_set();
+		
+		if (match(TOK_RBRACKET) == FALSE) {
+			print_warn("right bracket missed\n");
+			nerrors++;
+			return stat;
+		}
+		
+		return stat;
+	} */else if (match(TOK_LPAR)) {
 		stat = statesment();
+		
 		if (match(TOK_RPAR) == FALSE) {
 			print_warn("right parenthesis missed\n");
 			nerrors++;
 			return stat;
 		}
+		
 		return stat;
+
 	} else if (current_tok == TOK_EOL) {
+		
 		return NULL;
+
 	} else if (current_tok == TOK_EOF) {
 		syntax_is_eof = 1;
 		return NULL;
@@ -340,15 +398,70 @@ identifier()
 static syn_tree_t *
 call_function()
 {
-	
 	print_warn_and_die("WIP!\n");
 }
 
 static syn_tree_t *
 access_array()
 {
+	id_table_item_t *item;
+
+	item = lex_item_prev.item;
 
 
 	print_warn_and_die("WIP!\n");
+}
+
+static syn_tree_t *
+tuple_set()
+{
+	syn_tree_t *item, **arr;
+	arr_t *arr_item;
+
+	print_warn_and_die("WIP!\n");
+/*	int i, len, sz;
+	
+	arr = NULL;
+	len = sz = 0;
+
+	item = logic_disj();
+	
+	if (item == NULL)
+		return NULL;
+	
+	while (TRUE) {
+		if (match(TOK_COMMA) == FALSE)
+			break;
+
+		item = logic_disj();
+		if (item == NULL) {
+			nerrors++;
+			print_warn("uncomplited tuple\n");
+			goto error;
+		}
+
+		if (len >= sz) {
+			syn_tree_t **tmp;
+
+			sz += 4 * sizeof (*arr);
+
+			tmp = realloc(arr, sz);
+			if (tmp == NULL)
+				print_warn_and_die("realloc_err\n");
+			arr = tmp;
+		}
+		arr[len++] = item;
+	}
+
+	arr_item = arr_item_new(len, arr);
+	return syn_tree_arr_new(arr_item);
+
+error:
+	for (i = 0; i < len; i++)
+		syn_tree_unref(arr[i]);
+	
+	free(arr);
+	return syn_tree_stub_new();
+*/
 }
 
