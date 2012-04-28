@@ -42,6 +42,7 @@ ADAPTED SYNTAX:
 			|	WHILE(boolean) block
 			|	FOR (boolean; boolean; boolean) block
 			|	identifier = boolean						//FIXME!
+			|	identifier = { tuple_set }
 			|	block
 
 
@@ -74,7 +75,6 @@ ADAPTED SYNTAX:
 
 	factor		->	identifier
 			|	number
-			|	[ tuple_set ]
 			|	(boolean)
 			|	EMPTY
 
