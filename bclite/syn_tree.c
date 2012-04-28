@@ -7,30 +7,30 @@
 #include "syn_tree.h"
 
 static void
-syn_tree_free(syn_tree_t *tree)
+syn_node_free(syn_node_t *tree)
 {
-	syn_tree_arr_t *arr;
+	syn_node_arr_t *arr;
 
 	int i, n;
 
 	return_if_fail(tree != NULL);
 	
 	switch (tree->type) {
-	case SYN_TREE_NUM:
-	case SYN_TREE_ID:
+	case SYN_NODE_NUM:
+	case SYN_NODE_ID:
 		break;
-	case SYN_TREE_ARR:
+	case SYN_NODE_ARR:
 		//CHECK_ME
-		arr = (syn_tree_arr_t *)tree;
+		arr = (syn_node_arr_t *)tree;
 		n = arr->sz;
 		for (i = 0; i < n; i++)
-			syn_tree_free(arr->arr[i]);
+			syn_node_free(arr->arr[i]);
 		break;
-	case SYN_TREE_OP:
-	case SYN_TREE_AS:
-	case SYN_TREE_STUB:	
-		syn_tree_unref(tree->left);
-		syn_tree_unref(tree->right);
+	case SYN_NODE_OP:
+	case SYN_NODE_AS:
+	case SYN_NODE_STUB:	
+		syn_node_unref(tree->left);
+		syn_node_unref(tree->right);
 		break;
 	default:
 		print_warn_and_die("something wrong, no such type\n");
@@ -39,104 +39,104 @@ syn_tree_free(syn_tree_t *tree)
 	free(tree);
 }
 
-syn_tree_t *
-syn_tree_num_new(int num)
+syn_node_t *
+syn_node_num_new(int num)
 {
-	syn_tree_num_t *res;
+	syn_node_num_t *res;
 	
 	res = malloc_or_die(sizeof(*res));
 	memset(res, 0, sizeof(*res));
 
-	SYN_TREE(res)->type = SYN_TREE_NUM;
-	SYN_TREE(res)->destructor = syn_tree_free;
+	SYN_NODE(res)->type = SYN_NODE_NUM;
+	SYN_NODE(res)->destructor = syn_node_free;
 	
 	res->num = num;
 	
-	return SYN_TREE(res);
+	return SYN_NODE(res);
 }
 
-syn_tree_t *
-syn_tree_id_new(id_table_item_t *item)
+syn_node_t *
+syn_node_id_new(id_table_item_t *item)
 {
-	syn_tree_id_t *res;
+	syn_node_id_t *res;
 	
 	res = malloc_or_die(sizeof(*res));
 	memset(res, 0, sizeof(*res));
 
-	SYN_TREE(res)->type = SYN_TREE_ID;
-	SYN_TREE(res)->destructor = syn_tree_free;
+	SYN_NODE(res)->type = SYN_NODE_ID;
+	SYN_NODE(res)->destructor = syn_node_free;
 
 	res->item = item;
 
-	return SYN_TREE(res);
+	return SYN_NODE(res);
 }
 
 
-syn_tree_t *
-syn_tree_arr_new(syn_tree_t **arr, int sz)
+syn_node_t *
+syn_node_arr_new(syn_node_t **arr, int sz)
 {
-	syn_tree_arr_t *res;
+	syn_node_arr_t *res;
 
 	res = malloc_or_die(sizeof(*res));
 	
-	SYN_TREE(res)->type = SYN_TREE_ARR;
-	SYN_TREE(res)->destructor = syn_tree_free;
+	SYN_NODE(res)->type = SYN_NODE_ARR;
+	SYN_NODE(res)->destructor = syn_node_free;
 
 	res->arr = arr;
 	res->sz = sz;
 
-	return SYN_TREE(res);
+	return SYN_NODE(res);
 }
 
 
-syn_tree_t *
-syn_tree_op_new(syn_tree_t *left, syn_tree_t *right,int opcode)
+syn_node_t *
+syn_node_op_new(syn_node_t *left, syn_node_t *right, opcode_t opcode)
 {
-	syn_tree_op_t *res;
+	syn_node_op_t *res;
 	
 	res = malloc_or_die(sizeof(*res));
 	
-	SYN_TREE(res)->type = SYN_TREE_OP; 
-	SYN_TREE(res)->left = left;
-	SYN_TREE(res)->right = right;
-	SYN_TREE(res)->destructor = syn_tree_free;
+	SYN_NODE(res)->type = SYN_NODE_OP; 
+	SYN_NODE(res)->left = left;
+	SYN_NODE(res)->right = right;
+	SYN_NODE(res)->destructor = syn_node_free;
 
 	res->opcode = opcode;
 
-	return SYN_TREE(res);
+	return SYN_NODE(res);
 }
 
-syn_tree_t *
-syn_tree_as_new(syn_tree_t *left, syn_tree_t *right)
+syn_node_t *
+syn_node_as_new(syn_node_t *left, syn_node_t *right)
 {
-	syn_tree_as_t *res;
+	syn_node_as_t *res;
 	
 	res = malloc_or_die(sizeof(*res));
 	
-	SYN_TREE(res)->type = SYN_TREE_AS; 
-	SYN_TREE(res)->left = left;
-	SYN_TREE(res)->right = right;
-	SYN_TREE(res)->destructor = syn_tree_free;
+	SYN_NODE(res)->type = SYN_NODE_AS; 
+	SYN_NODE(res)->left = left;
+	SYN_NODE(res)->right = right;
+	SYN_NODE(res)->destructor = syn_node_free;
 
-	return SYN_TREE(res);
+	return SYN_NODE(res);
 }
 
-syn_tree_t *
-syn_tree_stub_new()
+syn_node_t *
+syn_node_stub_new()
 {
-	syn_tree_stub_t *res;
+	syn_node_stub_t *res;
 	
 	res = malloc_or_die(sizeof(*res));
 
 	memset(res, 0, sizeof(*res));
-	SYN_TREE(res)->type = SYN_TREE_STUB;
-	SYN_TREE(res)->destructor = syn_tree_free;
+	SYN_NODE(res)->type = SYN_NODE_STUB;
+	SYN_NODE(res)->destructor = syn_node_free;
 
-	return SYN_TREE(res);
+	return SYN_NODE(res);
 }
 
 void
-syn_tree_unref(syn_tree_t *tree)
+syn_node_unref(syn_node_t *tree)
 {
 	if (tree != NULL)
 		tree->destructor(tree);

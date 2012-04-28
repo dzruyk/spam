@@ -3,7 +3,7 @@
 
 #include "array.h"
 #include "id_table.h"
-#include "lex.h"
+#include "syn_tree.h"
 
 typedef enum {
 	EVAL_NUM,
@@ -30,7 +30,7 @@ eval_t *eval_arr_new(arr_t *arr);
 
 void eval_free(eval_t *eval);
 
-eval_t *eval_process_op(eval_t *left, eval_t *right, tok_t opcode);
+eval_t *eval_process_op(eval_t *left, eval_t *right, opcode_t opcode);
 
 eval_t * eval_assign(eval_t *left, eval_t *right);
 

@@ -83,7 +83,7 @@ eval_assign(eval_t *left, eval_t *right)
 }
 
 eval_t *
-eval_process_op(eval_t *left, eval_t *right, tok_t opcode)
+eval_process_op(eval_t *left, eval_t *right, opcode_t opcode)
 {
 	eval_t *ev;
 	int l, r, res;
@@ -94,44 +94,44 @@ eval_process_op(eval_t *left, eval_t *right, tok_t opcode)
 		return NULL;
 
 	switch(opcode) {
-	case TOK_MUL:
+	case OP_MUL:
 		res = l * r;
 		break;
-	case TOK_DIV:
+	case OP_DIV:
 		if (r == 0) {
 			print_warn("divide by zero\n");
 			return NULL;
 		}
 		res = l / r;
 		break;
-	case TOK_PLUS:
+	case OP_PLUS:
 		res = l + r;
 		break;
-	case TOK_MINUS:
+	case OP_MINUS:
 		res = l - r;
 		break;
-	case TOK_EQ:
+	case OP_EQ:
 		res = (l == r);
 		break;
-	case TOK_NEQ:
+	case OP_NEQ:
 		res = (l != r);
 		break;
-	case TOK_GR:
+	case OP_GR:
 		res = (l > r);
 		break;
-	case TOK_LO:
+	case OP_LO:
 		res = (l < r);
 		break;
-	case TOK_GE:
+	case OP_GE:
 		res = (l >= r);
 		break;
-	case TOK_LE:
+	case OP_LE:
 		res = (l <= r);
 		break;
-	case TOK_L_AND:
+	case OP_L_AND:
 		res = (l && r);
 		break;
-	case TOK_L_OR:
+	case OP_L_OR:
 		res = (l || r);
 		break;
 	default:

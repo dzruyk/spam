@@ -10,7 +10,7 @@
 int
 main(int argc, char *argv[])
 {
-	syn_tree_t *tree;
+	syn_node_t *tree;
 	ret_t ret;
 
 	id_tables_init();

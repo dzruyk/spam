@@ -11,19 +11,19 @@
 
 #include "traverse.h"
 
-static void traverse(syn_tree_t *tree);
+static void traverse(syn_node_t *tree);
 
-typedef void (*traverse_cb)(syn_tree_t *tree);
+typedef void (*traverse_cb)(syn_node_t *tree);
 
 static int nerrors = 0;
 
 static void
-traverse_num(syn_tree_t *tree)
+traverse_num(syn_node_t *tree)
 {
 	eval_t *ev;
 	int val;
 	
-	val = ((syn_tree_num_t *)tree)->num;
+	val = ((syn_node_num_t *)tree)->num;
 	
 	ev = eval_num_new(val);
 
@@ -31,27 +31,27 @@ traverse_num(syn_tree_t *tree)
 }
 
 static void
-traverse_id(syn_tree_t *tree)
+traverse_id(syn_node_t *tree)
 {
 	eval_t *ev;
 	id_table_item_t *item;
 
-	item = ((syn_tree_id_t *)tree)->item;
+	item = ((syn_node_id_t *)tree)->item;
 	
 	ev = eval_id_new(item);
 	stack_push(ev);
 }
 
 static void
-traverse_arr(syn_tree_t *tree)
+traverse_arr(syn_node_t *tree)
 {
 	eval_t *ev;
 	arr_t *arr;
-	syn_tree_t **synarr;
+	syn_node_t **synarr;
 	int i, sz, res;
 	
-	synarr = ((syn_tree_arr_t *)tree)->arr;
-	sz = ((syn_tree_arr_t *)tree)->sz;
+	synarr = ((syn_node_arr_t *)tree)->arr;
+	sz = ((syn_node_arr_t *)tree)->sz;
 
 	//size of int
 	arr = arr_new(sz, sizeof(int));
@@ -73,14 +73,14 @@ traverse_arr(syn_tree_t *tree)
 }
 
 static void
-traverse_as(syn_tree_t *tree)
+traverse_as(syn_node_t *tree)
 {
-	syn_tree_as_t *optree;
+	syn_node_as_t *optree;
 	eval_t *left, *right, *res;
 
-	optree = (syn_tree_as_t *)tree;
-	traverse(SYN_TREE(optree)->left);	
-	traverse(SYN_TREE(optree)->right);
+	optree = (syn_node_as_t *)tree;
+	traverse(SYN_NODE(optree)->left);	
+	traverse(SYN_NODE(optree)->right);
 
 	if (nerrors != 0)
 		return;
@@ -102,14 +102,14 @@ traverse_as(syn_tree_t *tree)
 }
 
 static void
-traverse_op(syn_tree_t *tree)
+traverse_op(syn_node_t *tree)
 {
-	syn_tree_op_t *optree;
+	syn_node_op_t *optree;
 	eval_t *left, *right, *res;
 
-	optree = (syn_tree_op_t *)tree;
-	traverse(SYN_TREE(optree)->left);	
-	traverse(SYN_TREE(optree)->right);
+	optree = (syn_node_op_t *)tree;
+	traverse(SYN_NODE(optree)->left);	
+	traverse(SYN_NODE(optree)->right);
 
 	if (nerrors != 0)
 		return;
@@ -130,32 +130,32 @@ traverse_op(syn_tree_t *tree)
 }
 
 static void
-traverse_stub(syn_tree_t *tree)
+traverse_stub(syn_node_t *tree)
 {
 	nerrors++;
 	return;
 }
 
 struct {
-	syn_tree_node_t node;
+	syn_node_node_t node;
 	traverse_cb callback;
 } node_type [] = {
-	{SYN_TREE_AS, traverse_as},
-	{SYN_TREE_OP, traverse_op},
-	{SYN_TREE_ARR, traverse_arr},
-	{SYN_TREE_ID, traverse_id},
-	{SYN_TREE_NUM, traverse_num},
-	{SYN_TREE_STUB, traverse_stub},
-	{SYN_TREE_UNKNOWN, NULL},
+	{SYN_NODE_AS, traverse_as},
+	{SYN_NODE_OP, traverse_op},
+	{SYN_NODE_ARR, traverse_arr},
+	{SYN_NODE_ID, traverse_id},
+	{SYN_NODE_NUM, traverse_num},
+	{SYN_NODE_STUB, traverse_stub},
+	{SYN_NODE_UNKNOWN, NULL},
 };
 
 static void
-traverse(syn_tree_t *tree)
+traverse(syn_node_t *tree)
 {
 	int i;
 	return_if_fail(tree != NULL);
 
-	for (i = 0; node_type[i].node != SYN_TREE_UNKNOWN; i++)
+	for (i = 0; node_type[i].node != SYN_NODE_UNKNOWN; i++)
 		if (node_type[i].node == tree->type) {
 			node_type[i].callback(tree);
 			return;
@@ -165,7 +165,7 @@ traverse(syn_tree_t *tree)
 //ASKME: I need to unref tree here?
 //
 ret_t
-traverse_prog(syn_tree_t *tree)
+traverse_prog(syn_node_t *tree)
 {
 	if (tree == NULL)
 		return ret_ok;
@@ -174,7 +174,7 @@ traverse_prog(syn_tree_t *tree)
 
 	traverse(tree);
 	
-	syn_tree_unref(tree);
+	syn_node_unref(tree);
 
 	if (nerrors != 0) {
 		stack_flush((stack_item_free_t )eval_free);

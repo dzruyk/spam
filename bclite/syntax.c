@@ -8,24 +8,24 @@
 #include "syntax.h"
 #include "lex.h"
 
-static syn_tree_t *statesment();
+static syn_node_t *statesment();
 
-static syn_tree_t *logic_disj();
-static syn_tree_t *logic_conj();
-static syn_tree_t *equity();
-static syn_tree_t *rel_op();
+static syn_node_t *logic_disj();
+static syn_node_t *logic_conj();
+static syn_node_t *equity();
+static syn_node_t *rel_op();
 
-static syn_tree_t *expr();
-static syn_tree_t *expr_rest();
-static syn_tree_t *term();
-static syn_tree_t *term_rest();
-static syn_tree_t *factor();
+static syn_node_t *expr();
+static syn_node_t *expr_rest();
+static syn_node_t *term();
+static syn_node_t *term_rest();
+static syn_node_t *factor();
 
-static syn_tree_t *identifier();
+static syn_node_t *identifier();
 
-static syn_tree_t *call_function();
-static syn_tree_t *access_array();
-static syn_tree_t *array_init();
+static syn_node_t *call_function();
+static syn_node_t *access_array();
+static syn_node_t *array_init();
 
 extern struct lex_item lex_item;
 extern struct lex_item lex_item_prev;
@@ -74,7 +74,7 @@ match(const tok_t expect)
 }
 
 ret_t
-program_start(syn_tree_t **tree)
+program_start(syn_node_t **tree)
 {
 	nerrors = 0;
 	*tree = NULL;
@@ -86,7 +86,7 @@ program_start(syn_tree_t **tree)
 	if (nerrors != 0) {
 		//now we must flush tree
 		if (*tree != NULL) {
-			syn_tree_unref(*tree);
+			syn_node_unref(*tree);
 			*tree = NULL;
 		}
 		return ret_err;
@@ -98,10 +98,10 @@ program_start(syn_tree_t **tree)
 
 //FIXME: REWRITEME!
 //
-static syn_tree_t *
+static syn_node_t *
 statesment()
 {
-	syn_tree_t *right, *result;
+	syn_node_t *right, *result;
 
 	result = logic_disj();
 
@@ -123,23 +123,23 @@ statesment()
 			nerrors++;
 		}
 
-		return syn_tree_as_new(result, right);
+		return syn_node_as_new(result, right);
 	}
 
 	right = statesment();
 	if (right == NULL) {
 		nerrors++;
 		print_warn("uncomplited as expression\n");
-		right = syn_tree_stub_new();
+		right = syn_node_stub_new();
 	}
 
-	return syn_tree_as_new(result, right);
+	return syn_node_as_new(result, right);
 }
 
-static syn_tree_t *
+static syn_node_t *
 logic_disj()
 {
-	syn_tree_t *right, *result;
+	syn_node_t *right, *result;
 
 	result = logic_conj();
 
@@ -154,18 +154,18 @@ logic_disj()
 		if (right == NULL) {
 			nerrors++;
 			print_warn("uncomplited eq expression\n");
-			right = syn_tree_stub_new();
+			right = syn_node_stub_new();
 		}
-		result = syn_tree_op_new(result, right, TOK_L_OR);
+		result = syn_node_op_new(result, right, OP_L_OR);
 	}
 	return result;
 
 }
 
-static syn_tree_t *
+static syn_node_t *
 logic_conj()
 {
-	syn_tree_t *right, *result;
+	syn_node_t *right, *result;
 
 	result = equity();
 
@@ -180,18 +180,18 @@ logic_conj()
 		if (right == NULL) {
 			nerrors++;
 			print_warn("uncomplited eq expression\n");
-			right = syn_tree_stub_new();
+			right = syn_node_stub_new();
 		}
-		result = syn_tree_op_new(result, right, TOK_L_AND);
+		result = syn_node_op_new(result, right, OP_L_AND);
 	}
 	return result;
 }
 
-static syn_tree_t *
+static syn_node_t *
 equity()
 {
-	syn_tree_t *right, *result;
-	int op;
+	syn_node_t *right, *result;
+	opcode_t op;
 
 	result = rel_op();
 
@@ -201,8 +201,10 @@ equity()
 	while (TRUE) {
 		switch (current_tok) {
 		case TOK_EQ:
+			op = OP_EQ;
+			break;
 		case TOK_NEQ:
-			op = current_tok;
+			op = OP_NEQ;
 			break;
 		default:
 			return result;
@@ -213,18 +215,18 @@ equity()
 		if (right == NULL) {
 			nerrors++;
 			print_warn("uncomplited eq expression\n");
-			right = syn_tree_stub_new();
+			right = syn_node_stub_new();
 		}
-		result = syn_tree_op_new(result, right, op);
+		result = syn_node_op_new(result, right, op);
 	}
 	return result;
 
 }
 
-static syn_tree_t *
+static syn_node_t *
 rel_op()
 {
-	syn_tree_t *right, *result;
+	syn_node_t *right, *result;
 	int op;
 
 	result = expr();
@@ -235,10 +237,16 @@ rel_op()
 	while (TRUE) {
 		switch (current_tok) {
 		case TOK_GR:
+			op = OP_GR;
+			break;
 		case TOK_GE:
+			op = OP_GE;
+			break;
 		case TOK_LO:
+			op = OP_LO;
+			break;
 		case TOK_LE:
-			op = current_tok;
+			op = OP_LE;
 			break;
 		default:
 			return result;
@@ -249,17 +257,17 @@ rel_op()
 		if (right == NULL) {
 			nerrors++;
 			print_warn("uncomplited rel expression\n");
-			right = syn_tree_stub_new();
+			right = syn_node_stub_new();
 		}
-		result = syn_tree_op_new(result, right, op);
+		result = syn_node_op_new(result, right, op);
 	}
 }
 
 
-static syn_tree_t *
+static syn_node_t *
 expr()
 {
-	syn_tree_t *tree;
+	syn_node_t *tree;
 
 	tree = term();
 
@@ -269,10 +277,10 @@ expr()
 	return expr_rest(tree);
 }
 
-syn_tree_t *
-expr_rest(syn_tree_t *left)
+syn_node_t *
+expr_rest(syn_node_t *left)
 {
-	syn_tree_t *right, *result;
+	syn_node_t *right, *result;
 	int op;
 
 	result = left;
@@ -280,10 +288,10 @@ expr_rest(syn_tree_t *left)
 	while(TRUE) {
 		switch (current_tok) {
 		case TOK_PLUS:
-			op = TOK_PLUS;
+			op = OP_PLUS;
 			break;
 		case TOK_MINUS:
-			op = TOK_MINUS;
+			op = OP_MINUS;
 			break;
 		default:
 			return result;
@@ -294,17 +302,17 @@ expr_rest(syn_tree_t *left)
 		if (right == NULL) {
 			nerrors++;
 			print_warn("uncomplited expr expression\n");
-			right = syn_tree_stub_new();
+			right = syn_node_stub_new();
 		}
 
-		result = syn_tree_op_new(result, right, op);
+		result = syn_node_op_new(result, right, op);
 	}
 }
 
-static syn_tree_t *
+static syn_node_t *
 term()
 {
-	syn_tree_t *tree;
+	syn_node_t *tree;
 
 	tree = factor();
 	if (tree == NULL) 
@@ -313,10 +321,10 @@ term()
 	return term_rest(tree);
 }
 
-static syn_tree_t *
-term_rest(syn_tree_t *left)
+static syn_node_t *
+term_rest(syn_node_t *left)
 {
-	syn_tree_t *right, *result;
+	syn_node_t *right, *result;
 	int op;
 
 	result = left;
@@ -324,8 +332,10 @@ term_rest(syn_tree_t *left)
 	while(TRUE) {
 		switch (current_tok) {
 		case TOK_MUL:
+			op = OP_MUL;
+			break;
 		case TOK_DIV:
-			op = current_tok;
+			op = OP_DIV;
 			break;
 		default:
 			return result;
@@ -336,19 +346,19 @@ term_rest(syn_tree_t *left)
 		if (right == NULL) {
 			nerrors++;
 			print_warn("uncomplited term expression\n");
-			right = syn_tree_stub_new();
+			right = syn_node_stub_new();
 		}
 
-		result = syn_tree_op_new(result, right, op);
+		result = syn_node_op_new(result, right, op);
 	}
 }
 
-// may be need to return syn_tree_stub_t when RBRACKET or RPAR missed?
+// may be need to return syn_node_stub_t when RBRACKET or RPAR missed?
 
-static syn_tree_t *
+static syn_node_t *
 factor()
 {
-	syn_tree_t *stat;
+	syn_node_t *stat;
 	
 	if (match(TOK_ID)) {
 		
@@ -356,7 +366,7 @@ factor()
 	
 	} else if (match(TOK_NUM)) {
 		
-		return syn_tree_num_new(lex_item_prev.num);
+		return syn_node_num_new(lex_item_prev.num);
 
 	}  else if (match(TOK_LPAR)) {
 		stat = statesment();
@@ -382,12 +392,12 @@ factor()
 	print_warn("unsupported token tryed to factor\n");
 	tok_next();
 	
-	stat = syn_tree_stub_new();
+	stat = syn_node_stub_new();
 
 	return stat;
 }
 
-static syn_tree_t *
+static syn_node_t *
 identifier()
 {
 	switch (current_tok) {
@@ -396,17 +406,17 @@ identifier()
 	case TOK_LPAR:
 		return call_function();
 	default:
-		return syn_tree_id_new(lex_item_prev.item);
+		return syn_node_id_new(lex_item_prev.item);
 	}
 }
 
-static syn_tree_t *
+static syn_node_t *
 call_function()
 {
 	print_warn_and_die("WIP!\n");
 }
 
-static syn_tree_t *
+static syn_node_t *
 access_array()
 {
 	id_table_item_t *item;
@@ -417,10 +427,10 @@ access_array()
 	print_warn_and_die("WIP!\n");
 }
 
-static syn_tree_t *
+static syn_node_t *
 array_init()
 {
-	syn_tree_t *item, **arr;
+	syn_node_t *item, **arr;
 
 	int i, len, sz;
 	
@@ -435,7 +445,7 @@ array_init()
 			goto error;
 		}
 		if (len >= sz) {
-			syn_tree_t **tmp;
+			syn_node_t **tmp;
 
 			sz += 4 * sizeof (*arr);
 
@@ -449,13 +459,13 @@ array_init()
 
 	} while (match(TOK_COMMA) != FALSE);
 
-	return syn_tree_arr_new(arr, len);
+	return syn_node_arr_new(arr, len);
 
 error:
 	for (i = 0; i < len; i++)
-		syn_tree_unref(arr[i]);
+		syn_node_unref(arr[i]);
 	
 	free(arr);
-	return syn_tree_stub_new();
+	return syn_node_stub_new();
 }
 
