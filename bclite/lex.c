@@ -174,6 +174,8 @@ get_next_token()
 	case ',':
 		peek = ' ';
 		lex_item.id = lex_item.op = TOK_COMMA;
+
+		return TOK_COMMA;
 	case '+':
 		peek = ' ';
 		lex_item.id = lex_item.op = TOK_PLUS;

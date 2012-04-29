@@ -97,7 +97,7 @@ id_table_lookup(char *name)
 {
 	id_table_item_t *res;
 	
-	if (hash_table_lookup(current, name, (void**)&res) != ret_ok )
+	if (hash_table_lookup(current, name, (void**)&res) != ret_ok)
 		return NULL;
 	else
 		return res;

@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 
 #include "array.h"
 #include "helper_funcs.h"
@@ -39,4 +41,16 @@ arr_free(arr_t *arr)
 	free(arr);
 }
 
+void
+arr_print(arr_t *arr)
+{
+	int i;
+	int *parr;
+
+	parr = arr->ptr;
+
+	for (i = 0; i < arr->n; i++)
+		printf("%d ", parr[i]);
+	printf("\n");
+}
 

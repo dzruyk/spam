@@ -1,23 +1,10 @@
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "common.h"
 #include "eval.h"
 #include "helper_funcs.h"
-#include "lex.h"
 #include "macros.h"
-
-eval_t *
-eval_id_new(id_table_item_t *item)
-{
-	eval_t *res;
-
-	res = malloc_or_die(sizeof(*res));
-	res->type = EVAL_ID;
-	
-	res->item = item;
-	
-	return res;
-}
 
 eval_t *
 eval_num_new(int value)
@@ -52,34 +39,13 @@ eval_free(eval_t *eval)
 	case EVAL_NUM:
 		free(eval);
 		break;
-	case EVAL_ID:
+	//warning, may be memory leak
+	case EVAL_ARR:
 		free(eval);
 		break;
 	default:
 		print_warn_and_die("WIP\n");
 	}
-}
-
-//WARNING: now i return modified left operand
-//
-eval_t *
-eval_assign(eval_t *left, eval_t *right)
-{
-	int res;
-
-	if (left->type == EVAL_NUM) {
-		print_warn("ERROR: assignment to number\n");
-		return NULL;	
-	} else if (left->type == EVAL_ID) {
-		eval_get_val(&res, right);
-		left->item->id = ID_NUM;
-		left->item->value = res;
-	} else {
-		print_warn("eval_assign: something wrong\n");
-		return NULL;
-	}
-	
-	return left;
 }
 
 eval_t *
@@ -88,10 +54,14 @@ eval_process_op(eval_t *left, eval_t *right, opcode_t opcode)
 	eval_t *ev;
 	int l, r, res;
 	
-	if (eval_get_val(&l, left) != ret_ok)
+	//FIXME
+	if (left->type != EVAL_NUM)
 		return NULL;
-	if (eval_get_val(&r, right) != ret_ok)
+	if (right->type != EVAL_NUM)
 		return NULL;
+	
+	l = left->value;
+	r = right->value;
 
 	switch(opcode) {
 	case OP_MUL:
@@ -143,7 +113,7 @@ eval_process_op(eval_t *left, eval_t *right, opcode_t opcode)
 }
 
 ret_t
-eval_get_val(int *res, eval_t *eval)
+eval_print_val(eval_t *eval)
 {
 	int value;
 
@@ -153,23 +123,15 @@ eval_get_val(int *res, eval_t *eval)
 	switch(eval->type) {
 	case EVAL_NUM:
 		value = eval->value;
-		break;
-	case EVAL_ID:
-		if (eval->item->id == ID_UNKNOWN) {
-			print_warn("symb %s undefined\n", eval->item->name);
-			return ret_err;
-		} else if (eval->item->id == ID_NUM)
-			value = eval->item->value;
+		printf("%d\n", value);
 		break;
 	case EVAL_ARR:
-		print_warn_and_die("WIP\n");
-	
+		arr_print(eval->arr);	
+		break;
 	default:
 		print_warn_and_die("INTERNAL ERROR: cant get value\n");
 	}
 
-	*res = value;
-	
 	return ret_ok; 
 }
 

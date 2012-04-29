@@ -21,7 +21,7 @@ main(int argc, char *argv[])
 		if (tree == NULL || ret != ret_ok)
 			continue;
 		if (traverse_prog(tree) == ret_ok)
-			traverse_print_result();
+			traverse_result();
 
 	} while (syntax_is_eof != 1);
 

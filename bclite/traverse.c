@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 #include "array.h"
 #include "common.h"
 #include "eval.h"
@@ -38,7 +36,21 @@ traverse_id(syn_node_t *tree)
 
 	item = ((syn_node_id_t *)tree)->item;
 	
-	ev = eval_id_new(item);
+	switch (item->id) {
+	case ID_NUM:
+		ev = eval_num_new(item->value);
+		break;
+	case ID_ARR:
+		ev = eval_arr_new(item->arr);
+		break;
+	case ID_UNKNOWN:
+		print_warn("symb %s undefined\n", item->name);
+		nerrors++;
+		return;
+	default:
+		print_warn_and_die("WIP\n");
+	}
+
 	stack_push(ev);
 }
 
@@ -61,8 +73,10 @@ traverse_arr(syn_node_t *tree)
 		if ((ev = stack_pop()) == NULL)
 			print_warn_and_die("unexpected error\n");
 		
-		if (eval_get_val(&res, ev) != ret_ok)
-			print_warn_and_die("unexpected error\n");
+		if (ev->type != EVAL_NUM)
+			print_warn_and_die("cant set item\n");
+		
+		res = ev->value;
 
 		if (arr_set_item(arr, i, res) != ret_ok)
 			print_warn_and_die("cant set item\n");
@@ -75,30 +89,42 @@ traverse_arr(syn_node_t *tree)
 static void
 traverse_as(syn_node_t *tree)
 {
-	syn_node_as_t *optree;
-	eval_t *left, *right, *res;
+	syn_node_id_t *idtree;
+	id_table_item_t *item;
 
-	optree = (syn_node_as_t *)tree;
-	traverse(SYN_NODE(optree)->left);	
-	traverse(SYN_NODE(optree)->right);
+	eval_t *right;
+
+	traverse(tree->right);
+	
+	if (tree->left->type != SYN_NODE_ID) {
+		print_warn("assignment to not variable\n");
+		nerrors++;
+	}
 
 	if (nerrors != 0)
 		return;
 	
 	right = stack_pop();
-	left = stack_pop();
 	
-	res = eval_assign(left, right);
-	if (res == NULL) {
-		nerrors++;
-		eval_free(left);
-		eval_free(right);
-		return;
+	idtree = (syn_node_id_t *)tree->left;
+	item = idtree->item;
+	
+	switch (right->type) {
+	case EVAL_NUM:
+
+		item->id = ID_NUM;
+		item->value = right->value;
+		break;
+	case EVAL_ARR:
+
+		item->id = ID_ARR;
+		item->arr = right->arr;
+		break;
+	default:
+		print_warn_and_die("WIP\n");
 	}
 	
-	eval_free(right);
-
-	stack_push(res);
+	stack_push(right);
 }
 
 static void
@@ -107,9 +133,10 @@ traverse_op(syn_node_t *tree)
 	syn_node_op_t *optree;
 	eval_t *left, *right, *res;
 
+	traverse(tree->left);	
+	traverse(tree->right);
+
 	optree = (syn_node_op_t *)tree;
-	traverse(SYN_NODE(optree)->left);	
-	traverse(SYN_NODE(optree)->right);
 
 	if (nerrors != 0)
 		return;
@@ -118,6 +145,7 @@ traverse_op(syn_node_t *tree)
 	left = stack_pop();
 	
 	res = eval_process_op(left, right, optree->opcode);
+
 	eval_free(left);
 	eval_free(right);
 	
@@ -184,20 +212,12 @@ traverse_prog(syn_node_t *tree)
 }
 
 void
-traverse_print_result()
+traverse_result()
 {
 	eval_t *tmp;
-	int val;
 
 	while ((tmp = (eval_t *)stack_pop()) != NULL) {
-	
-		if (eval_get_val(&val, tmp) != ret_ok) {
-			eval_free(tmp);
-			break;
-		}
-
-		printf("%d\n", val);
-
+		eval_print_val(tmp);
 		eval_free(tmp);
 	}
 }
