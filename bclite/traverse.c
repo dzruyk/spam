@@ -1,7 +1,6 @@
 #include "array.h"
 #include "common.h"
 #include "eval.h"
-#include "helper_funcs.h"
 #include "id_table.h"
 #include "lex.h"
 #include "macros.h"

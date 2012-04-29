@@ -6,7 +6,6 @@
 
 ret_t traverse_prog(syn_node_t *tree);
 
-
 //pop all items from stack and print it
 void traverse_result();
 

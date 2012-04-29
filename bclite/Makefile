@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -ggdb
 
-LEX_OBJS = helper_funcs.o lex.o id_table.o hash.o primes.o keyword.o
+LEX_OBJS = lex.o id_table.o hash.o primes.o keyword.o common.o
 LEX_MAIN = lex_test.o
 LEX_TEST = lex_test
 TRAVERSE_OBJS = stack.o syntax.o syn_tree.o traverse.o eval.o function.o array.o

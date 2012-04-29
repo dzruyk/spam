@@ -1,7 +1,7 @@
 #include <string.h>
 
 #include "function.h"
-#include "helper_funcs.h"
+#include "common.h"
 
 function_t *
 function_new()

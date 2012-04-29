@@ -1,8 +1,6 @@
 #include <stdio.h>
 
-
 #include "array.h"
-#include "helper_funcs.h"
 
 arr_t *
 arr_new(int n, int item_sz)

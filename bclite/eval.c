@@ -3,7 +3,6 @@
 
 #include "common.h"
 #include "eval.h"
-#include "helper_funcs.h"
 #include "macros.h"
 
 eval_t *

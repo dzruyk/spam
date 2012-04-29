@@ -1,8 +1,6 @@
 #include <stdio.h>
 
 #include "syn_tree.h"
-#include "common.h"
-#include "helper_funcs.h"
 #include "keyword.h"
 #include "macros.h"
 #include "syntax.h"

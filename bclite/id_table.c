@@ -3,7 +3,6 @@
 #include <string.h>
 
 #include "hash.h"
-#include "helper_funcs.h"
 #include "id_table.h"
 #include "lex.h"
 #include "macros.h"

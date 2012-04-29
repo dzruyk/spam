@@ -1,7 +1,7 @@
 #include <stdlib.h>
 
 #include "stack.h"
-#include "helper_funcs.h"
+#include "common.h"
 
 //FIXME: may be need to implement stack with dynamic array
 //	 but I'm so tired...)

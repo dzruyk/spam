@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "helper_funcs.h"
+#include "common.h"
 #include "macros.h"
 #include "syn_tree.h"
 

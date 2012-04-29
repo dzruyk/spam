@@ -3,7 +3,6 @@
 
 #include "common.h"
 #include "hash.h"
-#include "helper_funcs.h"
 #include "keyword.h"
 #include "macros.h"
 

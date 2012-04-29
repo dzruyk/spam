@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "helper_funcs.h"
 #include "keyword.h"
 #include "lex.h"
 
