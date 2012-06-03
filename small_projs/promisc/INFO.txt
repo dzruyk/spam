@@ -1,6 +1,0 @@
-http://www.binarytides.com/blog/packet-sniffer-code-in-c-using-linux-sockets-bsd-part-2/
-
-http://www.xakep.ru/magazine/xa/050/082/2.asp
-
-http://www.tcpdump.org/pcap3_man.html
-

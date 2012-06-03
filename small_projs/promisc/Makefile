@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -ggdb
 
-OBJECTS=common.o promisc.o list.o
+OBJECTS=common.o promisc.o if_descr.o print-headers.o
 
 TARGET=promisc
 

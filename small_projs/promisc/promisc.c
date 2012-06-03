@@ -3,7 +3,6 @@
 #include <sys/socket.h>
 
 #include <arpa/inet.h>
-#include <ifaddrs.h>
 #include <linux/if.h>
 #include <netpacket/packet.h>
 #include <net/ethernet.h>
@@ -13,55 +12,44 @@
 #include <unistd.h>
 
 #include "common.h"
-#include "list.h"
+#include "if_descr.h"
+#include "print-headers.h"
+
+#define PACKET_SZ 66000
 
 #define error(str) do {\
 		perror(str " ERR:");\
 		exit(1);\
 		} while(0)
 
-struct _if_descr {
-	struct _if_descr *next;
-	char *if_name;
-	int if_flags;
-};
-
-int if_descr_get_all(struct _if_descr **descr);
-
-void if_descr_add_unique(struct _if_descr **root, char *if_name, int if_flags);
-
-void if_descr_free(struct _if_descr *descr);
-
-
-void print_ifaces(struct _if_descr *ifaces);
-
-boolean_t iface_exist(char *ifname, struct _if_descr *iflist);
+boolean_t iface_exist(char *ifname, struct if_descr *iflist);
 
 void go_sniff(char *ifname);
+
 
 /*
  * set promisc mode on interface
  * and try to recv data from it
- * mb need to add -l flag for list interfaces
  */
 
 int
 main(int argc, char *argv[])
 {
-	struct _if_descr *iflist;
+	struct if_descr *iflist;
 
 	char *iface, *pname;
 	int opts;
 	
 	pname = argv[0];
 	
+	//get iface description
 	if (if_descr_get_all(&iflist) != 0)
 		error("getifaddrs ");
 	
 	while ((opts = getopt(argc, argv, "lh")) != -1) {
 		switch (opts) {
 		case 'l':
-			print_ifaces(iflist);
+			if_descr_print(iflist);
 			goto err;
 			break;
 		case 'h':
@@ -92,83 +80,15 @@ err:
 	return 1;
 }
 
-int
-if_descr_get_all(struct _if_descr **descr)
-{
-	struct _if_descr *root;
-
-	struct ifaddrs *iflst, *ifitem;
-
-	if (getifaddrs(&iflst) != 0)
-		return -1;
-	
-	root = NULL;
-
-	for (ifitem = iflst; ifitem != NULL; ifitem = ifitem->ifa_next)
-		if_descr_add_unique(&root, ifitem->ifa_name, ifitem->ifa_flags);
-	
-	*descr = root;
-
-	freeifaddrs(iflst);
-
-	return 0;
-}
-
-void
-if_descr_add_unique(struct _if_descr **root, char *if_name, int if_flags)
-{
-	struct _if_descr *tmp;
-
-	tmp = malloc_or_die(sizeof(*tmp));
-	
-	tmp->if_name = ustrdup(if_name);
-	tmp->if_flags = if_flags;
-	
-
-	//FIXME need to check that current if_name unique
-	tmp->next = *root;
-	*root = tmp;
-}
-
-
-void
-if_descr_free(struct _if_descr *descr)
-{
-	struct _if_descr *prev;
-	
-	prev = descr;
-
-	for (; prev != NULL; prev = descr) {
-		descr = descr->next;
-
-		//free item
-		free(prev->if_name);
-		free(prev);
-	}
-}
-
-//need to write my own func that will be collect unique ifaces
-void
-print_ifaces(struct _if_descr *ifaces) 
-{
-	int i;
-	
-	for (i = 0; ifaces != NULL; i++, ifaces = ifaces->next) {
-		char *name;
-
-		name = (char *)ifaces->if_name;
-		if ((ifaces->if_flags & IFF_UP) == 0)
-			continue;
-
-		printf("%d) %s", i + 1, name);
-		
-		printf("\n");
-	}
-
-}
+/*
+ * check that ifname exists in the iflist
+ * RETURNS:
+ * 	TRUE if finds
+ * 	FALSE if can't find
+ */
 
 boolean_t 
-iface_exist(char *ifname, struct _if_descr *iflist)
+iface_exist(char *ifname, struct if_descr *iflist)
 {
 	for (; iflist != NULL; iflist = iflist->next) {
 		char *tmp;
@@ -182,17 +102,29 @@ iface_exist(char *ifname, struct _if_descr *iflist)
 }
 
 
+/*
+ * FIXME: splitme
+ *
+ * this is main function
+ * it set promisc mode on interface and captures packets
+ * after end of capture it must unset promisc mode(not yet implemented)
+ */
+
 void
 go_sniff(char *ifname)
 {
 	struct sockaddr_ll from;
-	socklen_t len;
-
+	struct msghdr hdr;
+	struct iovec iov;
 	struct ifreq req;
-	int i, res;
+
+	socklen_t len;
+	int res;
 	int sock;
-	char buff[1024];
-	
+	char buff[PACKET_SZ];
+
+
+	//set name of iface
 	strcpy(req.ifr_name, ifname);
 
 	sock = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
@@ -222,12 +154,25 @@ go_sniff(char *ifname)
 		error("ioctl ");
 
 	len = sizeof(from);
-	while ((res = recvfrom(sock, buff, sizeof(buff), 
-	                       MSG_TRUNC, (struct sockaddr *) &from, &len)) > 0) {
+
+	memset(&hdr, 0, sizeof(hdr));
+
+	hdr.msg_iov = &iov;
+	hdr.msg_iovlen = 1;
+	iov.iov_base = buff;
+	iov.iov_len = sizeof(buff);
+
+	while (TRUE) {
 		
-		for (i = 0; i < res; i++)
-			printf("%2x ", buff[i]);
+		res = recvmsg(sock, &hdr, 0);
+		if (res <= 0) 
+			break;
+
 		printf("\nnew msg\n");
+		
+		print_main(buff, res);
+
+		printf("\n");
 	}
 	
 	//unset promisc mode

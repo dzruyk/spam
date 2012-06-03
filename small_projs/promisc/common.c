@@ -5,7 +5,7 @@
 inline void
 print_usage(char *pname)
 {
-	printf("USAGE:\n%s INTERFACE\n", pname);
+	printf("USAGE:\n%s [-l] INTERFACE\n", pname);
 }
 
 inline void *
