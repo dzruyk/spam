@@ -9,7 +9,9 @@ struct if_descr {
 
 int if_descr_get_all(struct if_descr **descr);
 
+
 void if_descr_add_unique(struct if_descr **root, char *if_name, int if_flags);
+
 
 void if_descr_free(struct if_descr *descr);
 

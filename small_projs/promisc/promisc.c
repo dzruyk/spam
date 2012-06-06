@@ -6,6 +6,7 @@
 #include <linux/if.h>
 #include <netpacket/packet.h>
 #include <net/ethernet.h>
+#include <signal.h> 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,6 +22,19 @@
 		perror(str " ERR:");\
 		exit(1);\
 		} while(0)
+
+
+struct sock_state {
+	struct sock_state *next;
+	int sock;
+	struct ifreq *req;
+} *states;
+
+void hold_sock_state(int sock, const struct ifreq *req);
+
+void restore_sock_state_all();
+
+void abrt_handler(int signal);
 
 boolean_t iface_exist(char *ifname, struct if_descr *iflist);
 
@@ -45,7 +59,12 @@ main(int argc, char *argv[])
 	//get iface description
 	if (if_descr_get_all(&iflist) != 0)
 		error("getifaddrs ");
+
+	signal(SIGTERM, abrt_handler);
+	signal(SIGABRT, abrt_handler);
+	signal(SIGINT, abrt_handler);
 	
+
 	while ((opts = getopt(argc, argv, "lh")) != -1) {
 		switch (opts) {
 		case 'l':
@@ -118,7 +137,6 @@ go_sniff(char *ifname)
 	struct iovec iov;
 	struct ifreq req;
 
-	socklen_t len;
 	int res;
 	int sock;
 	char buff[PACKET_SZ];
@@ -147,16 +165,16 @@ go_sniff(char *ifname)
 	if (ioctl(sock, SIOCGIFFLAGS, &req) != 0)
 		error("ioctl ");
 	
-	req.ifr_flags = req.ifr_flags | IFF_PROMISC;
+	hold_sock_state(sock, &req);
 
 	//set promisc mode
+	req.ifr_flags = req.ifr_flags | IFF_PROMISC;
+	
 	if (ioctl(sock, SIOCSIFFLAGS, &req) != 0)
 		error("ioctl ");
 
-	len = sizeof(from);
 
 	memset(&hdr, 0, sizeof(hdr));
-
 	hdr.msg_iov = &iov;
 	hdr.msg_iovlen = 1;
 	iov.iov_base = buff;
@@ -176,10 +194,50 @@ go_sniff(char *ifname)
 	}
 	
 	//unset promisc mode
-	req.ifr_flags = req.ifr_flags & (IFF_PROMISC ^ 0xFFffFFff);
-	if (ioctl(sock, SIOCSIFFLAGS, &req) != 0)
-		error("ioctl ");
-	
+	restore_sock_state_all();
+
 	close(sock);
+}
+
+void
+hold_sock_state(int sock, const struct ifreq *req)
+{
+	struct sock_state *tmp;
+
+	tmp = malloc_or_die(sizeof(*tmp));
+
+	tmp->sock = sock;
+	tmp->req = malloc_or_die(sizeof(*(tmp->req)));
+	memcpy(tmp->req, req, sizeof(*req));
+
+	tmp->next = states;
+	states = tmp;
+}
+
+void
+restore_sock_state_all()
+{
+	struct sock_state *tmp, *prev;
+
+	for (prev = tmp = states; tmp != NULL; prev = tmp) {
+		//unset saved flags^___^ on socket
+		printf("sock = %d\n",prev->sock);
+		if (ioctl(prev->sock, SIOCSIFFLAGS, prev->req) != 0)
+			error("ioctl\n");
+
+		tmp = tmp->next;
+		free(prev->req);
+		free(prev);
+	}
+}
+
+void 
+abrt_handler(int signal)
+{
+	restore_sock_state_all();
+	
+	printf("Catch signal, dying...\n");
+	
+	exit(1);
 }
 
