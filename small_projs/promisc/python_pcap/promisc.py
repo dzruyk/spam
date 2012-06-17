@@ -36,8 +36,10 @@ def main():
 			except:
 				print "No interfaces available\n May be you not a root?";
 				sys.exit(0);
+			i = 1;
 			for dev in devs:
-				print dev;
+				print "%d) %s" % (i, dev);
+				i = i + 1;
 			sys.exit(0);
 	
 	if len(argu) != 1:
