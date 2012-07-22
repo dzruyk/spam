@@ -2,9 +2,12 @@
 #define __SEARCH_H__
 
 
-int rabin_carp_search(char *big, char *small);
+int kmp_search(const char *big, const char *small);
 
 
-int trivia_search(char *big, char *small);
+int rabin_carp_search(const char *big, const char *small);
+
+
+int trivia_search(const char *big, const char *small);
 
 #endif

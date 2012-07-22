@@ -10,6 +10,7 @@
 
 
 char *predef[][2] = {
+		     {"+-+-+-+-+\n", "-+-+-+\n"},
 		     {"this is main string with substring", "substring"},
 		     {"this is main string with substring", "this"},
 		     {"in the middle right now!", "middle"},
@@ -19,7 +20,7 @@ char *predef[][2] = {
 		    };
 
 int
-strstr_search(char *s, char *subs)
+strstr_search(const char *s, const char *subs)
 {
 	char *res;
 	res = strstr(s, subs);
@@ -34,8 +35,10 @@ int
 main(int argc, char *argv[])
 {
 	int i;
-	int sz;
+	int is_err, sz;
+	FILE *fp;
 
+	is_err = 0;
 	sz = sizeof(predef) / sizeof(*predef);
 	//manual defined string tests
 	//CHECK CORNER CASES
@@ -46,7 +49,8 @@ main(int argc, char *argv[])
 		    strstr_search(predef[i][0], predef[i][1]),
 		    rabin_carp_search(predef[i][0], predef[i][1]),
 		    trivia_search(predef[i][0], predef[i][1]),
-		    kmp_search(predef[i][0], predef[i][1]));
+		    kmp_search(predef[i][0], predef[i][1])
+		    );
 	
 	//now automatic checks need to run
 	//input file look like this
@@ -55,8 +59,6 @@ main(int argc, char *argv[])
 	//STRING2
 	//SUBSTRING2
 	
-	FILE *fp;
-
 	fp = fopen(TEST_FILE, "r");
 	if (fp == NULL)
 		print_warn_and_die("open error\n");
@@ -90,25 +92,33 @@ main(int argc, char *argv[])
 
 		rc_res = rabin_carp_search(s, subs);
 		t_res = trivia_search(s, subs);
-		str_res = strstr_search(s, subs);
 		kmp_res = kmp_search(s, subs);
+		str_res = strstr_search(s, subs);
 
-		if (rc_res != str_res)
+		if (rc_res != str_res) {
 			printf("err!\nrc=%d str=%d\n s='%s' subs='%s'\n",
 			    rc_res, str_res, s, subs);
+			is_err = 1;
+		}
 			    
-		if (kmp_res != str_res)
-			printf("err!\nkmp=%d str=%d\n s='%s' subs='%s'\n",
-			    kmp_res, str_res, s, subs);
-
-		if (t_res != str_res)
+		if (t_res != str_res) {
 			printf("err!\nt=%d str=%d\n s='%s' subs='%s'\n",
 			    t_res, str_res, s, subs);
+			is_err = 1;
+		}
+
+		if (kmp_res != str_res) {
+			printf("err!\nkmp=%d str=%d\n s='%s' subs='%s'\n",
+			    kmp_res, str_res, s, subs);
+			is_err = 1;
+		}
+
 		
 		i++;
 	}
 	
-	printf("last line num = %d\nSUCCESS!!\n", i * 2);
+	if (is_err == 0)
+		printf("last line num = %d\nSUCCESS!!\n", i * 2);
 
 	return 0;
 }

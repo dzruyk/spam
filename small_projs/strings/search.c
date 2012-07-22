@@ -14,35 +14,36 @@ enum {
  * description on
  * http://en.wikipedia.org/wiki/Knuth%E2%80%93Morris%E2%80%93Pratt_algorithm
  */
-void
-get_pref(int *pref, char *str)
+static void
+get_pref(int *pref, const char *str)
 {
 	int i, j;
 
 	pref[0] = 0;
 
+	memset(pref, 0, strlen(str) * sizeof(int));
+
 	j = 0;
 
-	for (i = 1; i < strlen(str); i++) {
-		while (j > 0 && str[i] != str[j]) 
-			j = pref[j - 1];
-		if (str[i] == str[j])
+	for (i = 2; i < strlen(str); i++) {
+		while (j > 0 && str[i - 1] != str[j]) 
+			j = pref[j];
+		if (str[i - 1] == str[j])
 			j++;
 		pref[i] = j;
 	}
 }
 
 //BUGGGS!
-
 int
-kmp_search(char *big, char *small)
+kmp_search(const char *big, const char *small)
 {
 	int i;
 	int j;
 	int blen, slen;
 	int *pref;
 
-	pref = malloc_or_die(strlen(small));
+	pref = malloc_or_die(strlen(small) * sizeof(int));
 
 	get_pref(pref, small);
 
@@ -55,14 +56,16 @@ kmp_search(char *big, char *small)
 	j = 0;
 
 	for (i = 0; i < blen; i++) {
-		if (big[i] != small[j]) {
+		while (j > 0 && big[i] != small[j]) {
 			j = pref[j];
-			continue;
-		} else
+		} 
+		if (big[i] == small[j])
 			j++;
 		//end!
-		if (j == slen)
+		if (j == slen)	{
+			free(pref);
 			return i - slen + 1;
+		}
 	}
 
 	free(pref);
@@ -74,7 +77,7 @@ kmp_search(char *big, char *small)
  * Robin Carp Algo realisation
  */
 static int
-rc_hash(char *s, int len)
+rc_hash(const char *s, int len)
 {
 	int i;
 	int res;
@@ -90,7 +93,7 @@ rc_hash(char *s, int len)
 #define rc_hash_char(chr) chr * RC_MULT
 
 int
-rabin_carp_search(char *big, char *small)
+rabin_carp_search(const char *big, const char *small)
 {
 	int i;
 	int shash, bhash;
@@ -117,7 +120,7 @@ rabin_carp_search(char *big, char *small)
 }
 
 int
-trivia_search(char *big, char *small)
+trivia_search(const char *big, const char *small)
 {
 	int i, j;
 	int blen, slen;
