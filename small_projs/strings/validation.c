@@ -107,6 +107,8 @@ main(int argc, char *argv[])
 	
 	if (is_err == 0)
 		printf("last line num = %d\nSUCCESS!!\n", i * 2);
+	
+	fclose(fp);
 
 	return 0;
 }
