@@ -10,4 +10,7 @@ int rabin_carp_search(const char *big, const char *small);
 
 int trivia_search(const char *big, const char *small);
 
+
+int strstr_search(const char *s, const char *subs);
+
 #endif

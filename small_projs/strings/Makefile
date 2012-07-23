@@ -1,17 +1,25 @@
 CC=gcc
 CFLAGS=-Wall -ggdb
-OBJS=validation.c search.o common.o
-TARGET=string_test
+OBJS=search.o common.o
 
-all: $(TARGET)
+VALID_O=validation.o
+VALIDATION=validation_test
+
+PERF_O=performance.o
+PERFORMANCE=performance_test
+
+all: $(VALIDATION) $(PERFORMANCE)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $^
 
-$(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
+$(VALIDATION): $(OBJS) $(VALID_O)
+	$(CC) $(CFLAGS) -o $@ $>
+
+$(PERFORMANCE): $(OBJS) $(PERF_O)
+	$(CC) $(CFLAGS) -o $@ $>
 
 clean:
 	rm -rf *~ *.o
-	rm $(TARGET)
+	rm $(VALIDATION)
 

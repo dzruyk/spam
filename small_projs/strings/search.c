@@ -140,3 +140,17 @@ trivia_search(const char *big, const char *small)
 	return -1;
 }
 
+
+int
+strstr_search(const char *s, const char *subs)
+{
+	char *res;
+	res = strstr(s, subs);
+
+	if (res == NULL)
+		return -1;
+	else
+		return res - s;
+}	
+
+

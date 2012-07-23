@@ -20,18 +20,6 @@ char *predef[][2] = {
 		    };
 
 int
-strstr_search(const char *s, const char *subs)
-{
-	char *res;
-	res = strstr(s, subs);
-
-	if (res == NULL)
-		return -1;
-	else
-		return res - s;
-}	
-
-int
 main(int argc, char *argv[])
 {
 	int i;
