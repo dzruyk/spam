@@ -28,10 +28,27 @@ class netbot:
 			time.sleep(CONNECT_SLEEP_TIME)
 			i = i + 1
 			if i > MAX_CONNECTION_TRY:
-				return
+				return False
 
 		self.sock.setblocking(1);
+		
+		if (self.hand_shake() == False):
+			D('print "[-]hand shake fail"');
+			return False
 
+		while True:
+			try:
+				ack = self.sock.recv(PACK_SZ, socket.MSG_DONTWAIT)
+				print ack
+				time.sleep(5);
+				break;
+			except Exception as err:
+				
+				D('print "recv fail"');
+				print err;
+				return False;
+
+	def hand_shake(self):
 		try:
 			self.sock.sendall(HELLO_MSG);
 			ack = self.sock.recv(PACK_SZ, socket.MSG_DONTWAIT)
@@ -46,21 +63,14 @@ class netbot:
 			return False;
 
 		D('print "[+] Hello/ACK recieved"');
-
-		while True:
-			try:
-				ack = self.sock.recv(PACK_SZ, socket.MSG_DONTWAIT)
-				print ack
-				time.sleep(5);
-				break;
-			except Exception as err:
-				
-				D('print "recv fail"');
-				print err;
-				return False;
-
 	
+		return True;
+		
+
 	def send_msg(self, msg):
+		pass;
+	
+	def recv_msg(self):
 		pass;
 	
 	def connect(self):
