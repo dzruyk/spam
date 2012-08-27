@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import errno
 import socket
 import time
 
@@ -29,8 +30,38 @@ class netbot:
 			if i > MAX_CONNECTION_TRY:
 				return
 
-		self.sock.sendall(HELLO_MSG);
+		self.sock.setblocking(1);
 
+		try:
+			self.sock.sendall(HELLO_MSG);
+			ack = self.sock.recv(PACK_SZ, socket.MSG_DONTWAIT)
+		except Exception as err:
+			D('print "[-]recv HELLO/ACK fail"');
+			print err
+			return False;
+			
+		if ack != HELLO_ACK:
+			print ack
+			D('print "[-]netbot ack from server incorrect"');
+			return False;
+
+		D('print "[+] Hello/ACK recieved"');
+
+		while True:
+			try:
+				ack = self.sock.recv(PACK_SZ, socket.MSG_DONTWAIT)
+				print ack
+				time.sleep(5);
+				break;
+			except Exception as err:
+				
+				D('print "recv fail"');
+				print err;
+				return False;
+
+	
+	def send_msg(self, msg):
+		pass;
 	
 	def connect(self):
 		if self.sock != None:

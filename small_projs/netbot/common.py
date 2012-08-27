@@ -8,7 +8,9 @@ def_ip = "0.0.0.0"
 SERV_IP = "127.0.0.1"
 SERV_PORT = 5554
 
+PACK_SZ=512
 HELLO_MSG = "HELLO\n"
+HELLO_ACK = "HELLO/ACK"
 
 def D(stmt):
 	"""

