@@ -7,20 +7,24 @@ PATIENT_OBJS=patient.o
 TARGET=my_debugger
 OBJS=main.o
 
+SIMPLE_TEST_OBJS=test.o
+SIMPLE_TEST=_test
 
-all: $(PATIENT) $(TARGET)
+all: $(PATIENT) $(TARGET) $(SIMPLE_TEST)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $^
+%.o: %.S
+	$(CC) $(CFLAGS) -c $^
 
 $(PATIENT): $(PATIENT_OBJS)
-	$(CC) $(CFLAGS) -o $@ $>
+	$(CC) $(CFLAGS) -o $@ $^
 
 $(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $>
+	$(CC) $(CFLAGS) -o $@ $^
+
+$(SIMPLE_TEST): $(SIMPLE_TEST_OBJS)
+	ld -o $@ $^
 
 clean:
-	rm -rf *~
-	rm *.o
-	rm $(TARGET)
-	rm $(PATIENT)
+	rm -rf *~ *.o $(TARGET) $(PATIENT) $(SIMPLE_TEST)
