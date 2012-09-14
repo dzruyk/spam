@@ -20,6 +20,30 @@ enum {
 	BUFLEN = 128,
 };
 
+enum proc_st {
+	ST_ERR = 0,
+	ST_SAME,	// No state changes
+	ST_EXIT,	// proc exited
+	ST_SIGNAL,	// proc signalled
+	ST_STOP,	// stopped
+	ST_CONTINUE,	// proc continued
+};
+
+/*
+ * Process state structure.
+ * Used to retrieve info wia waitpid
+ * st holds one of allowed process states
+ * helper holds some additional info:
+ * return status if ST_EXIT occurred,
+ * signal number if ST_SIGNAL,
+ */
+struct proc_state {
+	enum proc_st	st;
+	int helper;
+};
+
+int get_state(pid_t pid, struct proc_state *pstate);
+
 /*
  * Get pid of traced process or die.
  */
@@ -93,10 +117,6 @@ ptrace_print_regs(pid_t pid)
 	int ret;
 	static struct user_regs_struct regs;
 
-	if (kill(pid, SIGSTOP) != 0)
-		print_warn("can't kill\n");
-
-	errno = 0;
 	ret = ptrace(PTRACE_GETREGS, pid, NULL, &regs);
 	if (ret == -1) {
 		perror("ptrace_print_regs");
@@ -108,10 +128,10 @@ ptrace_print_regs(pid_t pid)
 	       "edx = %.8x\t\n"
 	       "orig_eax = %.8x\n" 
 	       "eip = %.8x\n",
-	       regs.eax, regs.ebx, regs.ecx,
-	       regs.edx,
-	       regs.orig_eax,
-	       regs.eip);
+	       (int)regs.eax, (int)regs.ebx, (int)regs.ecx,
+	       (int)regs.edx,
+	       (int)regs.orig_eax,
+	       (int)regs.eip);
 }
 
 void
@@ -120,32 +140,44 @@ ptrace_cur_instruction()
 
 }
 
-void
-get_signal(pid_t pid)
+
+int
+get_state(pid_t pid, struct proc_state *pstate)
 {
 	int ret, st;
 
 	ret = waitpid(pid, &st, WNOHANG);
 	if (ret == -1) {
-		print_warn("wait pid error\n");
-		return;
+		DEBUG(LOG_DEFAULT, "wait pid error\n");
+		pstate->st = ST_ERR;
+		return ST_ERR;
 	}
 	if (ret == 0)
-		return;
+		return ST_SAME;
 
-	if (WIFEXITED(st)) 
-		DEBUG(LOG_DEFAULT, "child exited with status %d\n", WEXITSTATUS(st));
-	else if (WIFSIGNALED(st))
-		DEBUG(LOG_DEFAULT, "child signalled with signal %d\n", WTERMSIG(st));
-	else if (WIFSTOPPED(st))
+	if (WIFEXITED(st)) {
+		pstate->st = ST_EXIT;
+		pstate->helper = WEXITSTATUS(st);
+		DEBUG(LOG_DEFAULT, "child exited with status %d\n", pstate->helper);
+	} else if (WIFSIGNALED(st)) {
+		pstate->st = ST_SIGNAL;
+		pstate->helper = WTERMSIG(st);
+		DEBUG(LOG_DEFAULT, "child signalled with signal %d\n", pstate->helper);
+	} else if (WIFSTOPPED(st)) {
+		pstate->st = ST_STOP;
 		DEBUG(LOG_DEFAULT, "child stopped\n");
-	else if (WIFCONTINUED(st))
+	} else if (WIFCONTINUED(st)) {
+		pstate->st = ST_CONTINUE;
 		DEBUG(LOG_DEFAULT, "child continued\n");
+	}
+
+	return pstate->st;
 }
 
 int
 main(int argc, char *argv[])
 {
+	struct proc_state pstate;
 	int ret, child;
 	char answer[BUFLEN];
 
@@ -154,23 +186,45 @@ main(int argc, char *argv[])
 	DEBUG(LOG_DEFAULT, "child pid is %d\n", child);
 
 	while (1) {
+		DEBUG(LOG_VERBOSE, "new iter started\n");
+
 		ptrace_print_regs(child);
+
 		ret = ptrace_next_step(child);
-		ptrace_print_regs(child);
 		if (ret != 0)
 			break;
-		
+
 		printf("next?\n");
 		
 		memset(answer, 0, BUFLEN);
 		fgets(answer, BUFLEN, stdin);
 		if (strcmp(answer, "n\n") == 0)
 			break;
+		
+		do {
+			ret = get_state(child, &pstate);
+			switch (ret) {
+			case ST_ERR:
+				print_warn_and_die("Can't get child state\n");
+			case ST_SAME:
+				continue;
+			case ST_EXIT:
+				goto finalize;
+				break;
+			case ST_STOP:
+			case ST_SIGNAL:
+			case ST_CONTINUE:
+				break;
+			}
+		} while (ret == ST_SAME);
+
 
 	}
 	
 	//FIXME: need to check is child allive
-	kill(child, SIGKILL);
+	if (child != -1)
+		kill(child, SIGKILL);
+finalize:
 
 	return 0;
 }
