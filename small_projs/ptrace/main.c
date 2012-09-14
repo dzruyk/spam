@@ -1,3 +1,5 @@
+#include <errno.h>
+
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -67,18 +69,40 @@ ptrace_init(char *pname)
 	}
 }
 
-void
-ptrace_step(pid_t pid)
+/*
+ * Try to execute next instruction.
+ * returns 0 if success
+ * returns 1 otherwise.
+ */
+int
+ptrace_next_step(pid_t pid)
 {
-	ptrace(PTRACE_SINGLESTEP, pid, NULL, NULL);
+	int ret;
+	
+	ret = ptrace(PTRACE_SINGLESTEP, pid, NULL, NULL);
+	if (ret == -1) {
+		perror("ptrace_next_step ");
+		return 1;
+	}
+	return 0;
 }
 
 void
 ptrace_print_regs(pid_t pid)
 {
-	struct user_regs_struct regs;
+	int ret;
+	static struct user_regs_struct regs;
 
-	ptrace(PTRACE_GETREGS, pid, NULL, &regs);
+	if (kill(pid, SIGSTOP) != 0)
+		print_warn("can't kill\n");
+
+	errno = 0;
+	ret = ptrace(PTRACE_GETREGS, pid, NULL, &regs);
+	if (ret == -1) {
+		perror("ptrace_print_regs");
+		printf("pid is %d\n", pid);
+		return;
+	}
 
 	printf("eax = %.8x\t ebx = %.8x\t ecx = %.8x\n"
 	       "edx = %.8x\t\n"
@@ -96,27 +120,56 @@ ptrace_cur_instruction()
 
 }
 
+void
+get_signal(pid_t pid)
+{
+	int ret, st;
+
+	ret = waitpid(pid, &st, WNOHANG);
+	if (ret == -1) {
+		print_warn("wait pid error\n");
+		return;
+	}
+	if (ret == 0)
+		return;
+
+	if (WIFEXITED(st)) 
+		DEBUG(LOG_DEFAULT, "child exited with status %d\n", WEXITSTATUS(st));
+	else if (WIFSIGNALED(st))
+		DEBUG(LOG_DEFAULT, "child signalled with signal %d\n", WTERMSIG(st));
+	else if (WIFSTOPPED(st))
+		DEBUG(LOG_DEFAULT, "child stopped\n");
+	else if (WIFCONTINUED(st))
+		DEBUG(LOG_DEFAULT, "child continued\n");
+}
+
 int
 main(int argc, char *argv[])
 {
-	int i, child;
+	int ret, child;
 	char answer[BUFLEN];
 
 	child = ptrace_init(CHILD_NAME);
 
+	DEBUG(LOG_DEFAULT, "child pid is %d\n", child);
 
 	while (1) {
 		ptrace_print_regs(child);
-		ptrace_step(child);
-
+		ret = ptrace_next_step(child);
+		ptrace_print_regs(child);
+		if (ret != 0)
+			break;
+		
 		printf("next?\n");
 		
 		memset(answer, 0, BUFLEN);
 		fgets(answer, BUFLEN, stdin);
 		if (strcmp(answer, "n\n") == 0)
 			break;
+
 	}
 	
+	//FIXME: need to check is child allive
 	kill(child, SIGKILL);
 
 	return 0;
