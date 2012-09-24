@@ -1,7 +1,6 @@
 #ifndef _CLIENT_H_
 #define _CLIENT_H_
 
-
 class BOT 
 {
 public:
@@ -15,25 +14,14 @@ public:
 	bool main_loop();
 	bool send_client_info();
 
+	int get_next_cmd(struct command_ctx *ctx);
+	bool get_cli_mode();
 private:
-
-	bool create_socket();
-	bool connect_socket();
 	bool hand_shake();
-	bool send_msg(char *msg, int len);
-	bool recv_msg(char *msg, int *len, int maxlen);
-	bool close_socket();
+	bool validate_server(char *msg, int sz);
 
-	int sock;
-	
-	in_addr_t serv_ip;
-	int serv_port;
-	
-	in_addr_t client_ip;
-	int client_port;
+	class Socket *socket;
 
-	int sock_domain;
-	int sock_type;
 };
 
 

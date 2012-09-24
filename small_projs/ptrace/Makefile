@@ -5,7 +5,7 @@ PATIENT=patient
 PATIENT_OBJS=patient.o
 
 TARGET=my_debugger
-OBJS=main.o
+OBJS=main.o op_to_str.o
 
 SIMPLE_TEST_OBJS=test.o
 SIMPLE_TEST=_test

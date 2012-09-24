@@ -13,6 +13,7 @@
 
 #include "common.h"
 #include "log.h"
+#include "op_to_str.h"
 
 #define CHILD_NAME "./_test"
 
@@ -38,7 +39,7 @@ enum proc_st {
  * signal number if ST_SIGNAL,
  */
 struct proc_state {
-	enum proc_st	st;
+	enum proc_st st;
 	int helper;
 };
 
@@ -135,11 +136,32 @@ ptrace_print_regs(pid_t pid)
 }
 
 void
-ptrace_cur_instruction()
-{
+ptrace_print_cur_instruction(pid_t pid)
+{	
+	static struct user_regs_struct regs;
+	char buff[128];
+	int ret;
 
+	ret = ptrace(PTRACE_GETREGS, pid, NULL, &regs);
+	if (ret == -1)
+		goto err;
+	errno = 0;
+	ret = ptrace(PTRACE_PEEKTEXT, pid, regs.eip);
+	if (ret == -1 && errno != 0)
+		goto err;
+	
+	if (op_to_str(ret, buff, 128) == 0)
+		printf("cur opcode %s\n", buff);
+	else
+		printf("==cur instruction = %.8x\n", ret);
+	
+
+	return;
+err:
+	perror("ptrace_print_regs");
+	DEBUG(LOG_VERBOSE, "pid is %d\n", pid);
+	return;
 }
-
 
 int
 get_state(pid_t pid, struct proc_state *pstate)
@@ -190,6 +212,8 @@ main(int argc, char *argv[])
 
 		ptrace_print_regs(child);
 
+		ptrace_print_cur_instruction(child);
+
 		ret = ptrace_next_step(child);
 		if (ret != 0)
 			break;
@@ -217,8 +241,6 @@ main(int argc, char *argv[])
 				break;
 			}
 		} while (ret == ST_SAME);
-
-
 	}
 	
 	//FIXME: need to check is child allive
