@@ -51,6 +51,7 @@ class bot_master:
 			return False;
 		if ack != HELLO_MSG:
 			print '[-] HELLO message incorrect'
+			print 'ack = %s' % ack
 			return False;
 
 		print "[+] ack recieved"

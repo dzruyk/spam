@@ -10,10 +10,20 @@ public:
 	bool set_port(char *serv_port);
 
 	bool init_connection();
-
 	bool close_connection();
 
+	bool main_loop();
+	bool send_client_info();
+
 private:
+
+	bool create_socket();
+	bool connect_socket();
+	bool hand_shake();
+	bool send_msg(char *msg, int len);
+	bool recv_msg(char *msg, int *len, int maxlen);
+	bool close_socket();
+
 	int sock;
 	
 	in_addr_t serv_ip;

@@ -19,5 +19,8 @@ main(int argc, char *argv[])
 	bot->close_connection(bot);
 
 	return 0;
+
+err:
+	return 1;
 }
 
