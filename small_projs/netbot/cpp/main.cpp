@@ -22,8 +22,8 @@ main(int argc, char *argv[])
 	int i;
 
 	//close unusible fds
-	close(0);
-	close(1);
+	//close(0);
+	//close(1);
 
 	bot = new BOT();
 

