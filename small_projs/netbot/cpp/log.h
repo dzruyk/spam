@@ -13,8 +13,7 @@
 #define DEBUG(MSG_LOG_LVL, fmt, arg...) \
 do {\
     if (MSG_LOG_LVL <= LOG_LEVEL) {\
-        fprintf(stderr, "function %s:"fmt,\
-        __FUNCTION__, \
+        fprintf(stderr, fmt,\
         ##arg); \
     } \
 } while (0)

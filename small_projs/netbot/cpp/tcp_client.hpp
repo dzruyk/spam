@@ -16,11 +16,14 @@ public:
 private:
 	int sock;
 	
-	int serv_ip;
+	in_addr_t serv_ip;
 	int serv_port;
 	
-	int client_ip;
+	in_addr_t client_ip;
 	int client_port;
+
+	int sock_domain;
+	int sock_type;
 };
 
 
