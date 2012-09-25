@@ -15,7 +15,7 @@
 #define TARGET_PORT (char*)"5554"
 
 int
-main(int argc, char *argv[])
+bot_single_session()
 {
 	BOT *bot;
 	bool ret;
@@ -65,5 +65,17 @@ err:
 	delete bot;
 
 	return 1;
+
 }
+
+int
+main(int argc, char *argv[])
+{
+	while (1) {
+		//parse conf,
+		bot_single_session();
+	}
+	return 0;
+}
+
 

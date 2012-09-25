@@ -44,6 +44,8 @@ class bot_master:
     else:
       print "write automatic functions plz"
       return False;
+    D("out from main loop")
+    return True;
 
   def hand_shake(self, sock):
     sock.setblocking(1);
@@ -62,7 +64,7 @@ class bot_master:
   
   def get_cli(self, sock):
     prev = sock.gettimeout()
-    sock.settimeout(1.0)
+    sock.settimeout(0.5)
     sock.sendall("get_cli\n");
 
     try:sock.recv(PACK_SZ, socket.MSG_DONTWAIT)
@@ -82,23 +84,28 @@ class bot_master:
 
         sock.sendall(ln);
         print "msg send success"
-	try:
-	  ack = sock.recv(PACK_SZ);
-        except socket.timeout:
-	  D("Recv time out");
-	  continue;
 
-	print "recv success"
-        
-        if ack == "EXIT\n":
-          break;
-        print ack;
+	if ln == "EXIT\n":
+	  break;
+
+        while True:
+	  try:
+	    ack = sock.recv(PACK_SZ);
+	    if len(ack) == 0:
+	    	break;
+	    sys.stdout.write(ack)
+          except socket.timeout:
+	    break;
+
+	sys.stdout.write("\n")
+	
       except Exception as err:
         D("iter fail %s" % err);
         sock.settimeout(prev)
         return False;
-    sock.settimeout(prev);
-    pass;
+    sock.settimeout(prev)
+    D("get cli end");
+    pass
 
   def start_listen(self):
     if self.sock != None:

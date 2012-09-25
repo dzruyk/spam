@@ -73,10 +73,11 @@ bool BOT::main_loop()
 				goto err;
 			break;
 		case CMD_SHUTDOWN:
-			DEBUG(LOG_DEFAULT, "recv shutdown command, dying");
+			DEBUG(LOG_DEFAULT, "recv shutdown command, dying\n");
 			exit(0);
 		case CMD_ERR:
 			goto err;
+		case CMD_NOP:
 		default:
 			break;
 		}
@@ -107,8 +108,10 @@ int BOT::get_next_cmd(struct command_ctx *ctx)
 		return CMD_SHUTDOWN;
 	if (strcmp(buff, "get_info\n") == 0)
 		return CMD_GET_INFO;
+	if (strcmp(buff, "\n") == 0)
+		return CMD_NOP;
 	
-	return CMD_BYE;
+	return CMD_NOP;
 }
 
 bool BOT::get_cli_mode()
@@ -130,6 +133,8 @@ bool BOT::get_cli_mode()
 		
 		buff[len] = '\0';
 		DEBUG(LOG_VERBOSE, "recv %d bytes,%s\n", len, buff);
+		if (strcmp(buff, "EXIT\n") == 0)
+			break;
 
 		if ((fp = popen(buff, "r")) == NULL) {
 			DEBUG(LOG_DEFAULT, "popen(3) error. input msg is %s",
@@ -149,6 +154,8 @@ bool BOT::get_cli_mode()
 		//FIXME: check for errors
 		pclose(fp);
 	}
+
+	DEBUG(LOG_DEFAULT, "out from get_cli_mode\n");
 
 	return true;
 }
