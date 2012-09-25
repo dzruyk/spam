@@ -12,6 +12,8 @@ public:
 	bool send_msg(char *msg, int len);
 	bool recv_msg(char *msg, int *len, int maxlen);
 	bool close_socket();
+
+	int is_closed;
 private:
 	int sock;
 	

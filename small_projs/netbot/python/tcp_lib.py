@@ -1,27 +1,27 @@
 #!/usr/bin/env python
 
 class sock:
-	def recv_msg():
+  def recv_msg():
 
-	def send_msg():
+  def send_msg():
 
 
 class client(sock):
-	""" 
-	std sockets wrapper
-	"""
-	def __init__(self, ip, port):
+  """ 
+  std sockets wrapper
+  """
+  def __init__(self, ip, port):
 
-	def connect():
+  def connect():
 
-	def disconnect():
+  def disconnect():
 
 
 class server(sock):
-	def __init__(self, ip, port):
+  def __init__(self, ip, port):
 
-	def listen():
+  def listen():
 
-	def accept():
+  def accept():
 
-	def disconnect();
+  def disconnect();

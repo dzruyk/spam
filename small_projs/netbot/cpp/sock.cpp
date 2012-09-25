@@ -24,6 +24,8 @@ Socket::Socket()
 	this->sock_type = SOCK_STREAM;
 	this->serv_port = 0;
 	this->serv_ip = 0;
+
+	this->is_closed = 1;
 }
 
 bool Socket::create_socket()
@@ -42,6 +44,7 @@ bool Socket::create_socket()
 		return false;
 	}
 	this->sock = sock;
+	this->is_closed = 0;
 
 	return true;
 }
@@ -116,6 +119,8 @@ err:
 
 bool Socket::recv_msg(char *msg, int *len, int maxlen)
 {
+	DEBUG(LOG_VERBOSE, "recv_msg\n");
+
 	assert(this->sock != 0);
 	int ret;
 
@@ -124,10 +129,17 @@ bool Socket::recv_msg(char *msg, int *len, int maxlen)
 	if (ret == -1)
 		goto err;
 
+	if (ret == 0) {
+		this->is_closed = 1;
+		goto err;
+	}
+
 	*len = ret;
 	
 	return true;
 err:
+	DEBUG(LOG_VERBOSE, "recv return %d\n", ret);
+
 	return false;
 }
 

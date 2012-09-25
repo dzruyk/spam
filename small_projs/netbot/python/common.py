@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import sys
 
 DEBUG = 1
 
@@ -12,14 +13,14 @@ PACK_SZ=512
 HELLO_MSG = "HELLO\n"
 HELLO_ACK = "HELLO/ACK\n"
 
-def D(stmt):
-	"""
-	helper function, try to resolve debug value,
-	if success, print debug message
-	"""
-	try:
-		DEBUG
-	except:
-		return;
-	exec(stmt);
+def D(msg):
+  """
+  helper function, try to resolve debug value,
+  if success, print debug message
+  """
+  try:
+    DEBUG
+  except:
+    return;
+  sys.stderr.write(msg + '\n');
 
