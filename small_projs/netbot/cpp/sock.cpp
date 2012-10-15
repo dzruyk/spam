@@ -49,6 +49,21 @@ bool Socket::create_socket()
 	return true;
 }
 
+bool Socket::get_sock(int *sock)
+{
+	if (this->sock == 0) {
+		DEBUG(LOG_DEFAULT, "Seems like socket not created\n");
+		return false;
+	}
+	if (this->is_closed == 1) {
+		DEBUG(LOG_DEFAULT, "Seems like socket closed\n");
+		return false;
+	}
+	*sock = this->sock;
+
+	return true;
+}
+
 bool Socket::set_ip(char *serv_ip)
 {
 	this->serv_ip = inet_addr(serv_ip);
@@ -61,7 +76,7 @@ bool Socket::set_ip(char *serv_ip)
 
 bool Socket::set_port(char *serv_port)
 {
-	DEBUG(LOG_VERBOSE, "bot set port\n");
+	DEBUG(LOG_VERBOSE, "Socket set port\n");
 	uint16_t port;
 //FIXME:
 	port = atoi(serv_port);
@@ -92,7 +107,7 @@ bool Socket::connect_socket()
 		DEBUG(LOG_DEFAULT, "can't connect to server: %s\n", strerror(errno));
 		return false;
 	}
-	DEBUG(LOG_VERBOSE, "bot connection success\n");
+	DEBUG(LOG_VERBOSE, "Socket connection success\n");
 
 	return true;
 }

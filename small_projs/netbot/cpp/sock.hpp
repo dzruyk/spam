@@ -7,6 +7,7 @@ public:
 	Socket();
 	bool create_socket();
 	bool connect_socket();
+	bool get_sock(int *sock);
 	bool set_ip(char *serv_ip);
 	bool set_port(char *serv_port);
 	bool send_msg(char *msg, int len);

