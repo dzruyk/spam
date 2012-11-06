@@ -107,6 +107,7 @@ bool Socket::connect_socket()
 		DEBUG(LOG_DEFAULT, "can't connect to server: %s\n", strerror(errno));
 		return false;
 	}
+
 	DEBUG(LOG_VERBOSE, "Socket connection success\n");
 
 	return true;

