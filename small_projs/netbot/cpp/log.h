@@ -1,6 +1,8 @@
 #ifndef __MYLOG_H__
 #define __MYLOG_H__
 
+#include <stdio.h>
+
 #define IS_DEBUG 1
 #define LOG_LEVEL LOG_VERBOSE
 

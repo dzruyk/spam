@@ -7,6 +7,7 @@
 #include <unistd.h>
 
 #include "commands.h"
+#include "common.h"
 #include "log.h"
 #include "messages.h"
 #include "tcp_client.hpp"
@@ -88,6 +89,26 @@ bool BOT::main_loop()
 	return true;
 err:
 	return false;
+}
+
+//just stub now
+static void
+feel_ctx(char *msg, int len, struct command_ctx *ctx)
+{
+	int i, cmd;
+
+	for (i = 0; i < ARRSZ(commands); i++) {
+		cmd = 0;
+	}
+
+	switch (cmd) {
+	case CMD_RECV_FILE:
+		break;
+	default:
+		ctx->cmd = cmd;
+		ctx->val = 0;
+	}
+
 }
 
 int BOT::get_next_cmd(struct command_ctx *ctx)

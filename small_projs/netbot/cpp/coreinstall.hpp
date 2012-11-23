@@ -15,9 +15,9 @@ public:
 	~Installer();
 
 	bool install(char *todir);
-	bool unistall(char *fromdir);
+	bool uninstall(char *fromdir);
 private:
 	char *pname;
-}
+};
 
 #endif

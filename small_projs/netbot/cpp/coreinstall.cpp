@@ -1,6 +1,7 @@
 #include <stdlib.h>
 
 #include "config.h"
+#include "common.h"
 #include "coreinstall.hpp"
 #include "log.h"
 
@@ -10,7 +11,7 @@ bool self_install()
 
 	Installer inst(getprogname());
 
-	installer->install();
+	inst.install("/tmp/");
 
 	return true;
 }
@@ -37,7 +38,7 @@ bool Installer::install(char *todir)
 
 bool Installer::uninstall(char *fromdir)
 {
-	DEBUG(LOG_VERBOSE, "Uninstall from %s\n", todir);
+	DEBUG(LOG_VERBOSE, "Uninstall from %s\n", fromdir);
 
 	return true;
 }
