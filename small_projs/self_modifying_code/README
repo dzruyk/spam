@@ -1,0 +1,2 @@
+This is sample of self modifying code writen on C for i356 architecture
+func(int a, int b) returns a + b or a - b
