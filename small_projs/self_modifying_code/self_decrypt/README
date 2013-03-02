@@ -1,0 +1,11 @@
+Simple example of self modifying code.
+
+crypt.c have routine that decrypts function print_hello at execution
+
+Installation:
+1)make (creates 2 executions)
+2) Need to find offset first "google" string in execution file crypted then calculate 
+3) with tool  ./crypor crypt binary ./crypted
+4) run ./crypted
+
+
