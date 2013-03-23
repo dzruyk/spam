@@ -1,0 +1,5 @@
+Example of self-modifiyng code.
+function f(a, b) returns:
+a - b every odd call
+a + b every even call
+
