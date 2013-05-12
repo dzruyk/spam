@@ -1,0 +1,6 @@
+Some linux hooks tests.
+
+I try to set read/write hooks by exporting custom library via LD_PRELOAD.
+Then executing *test_write* that try to write "test_msg" into ./test.txt
+if LD_PRELOAD variable is set hook write "\nhacked\n" as additional data 
+at every *write* call
