@@ -29,16 +29,24 @@ class MyTestParser(HTMLParser):
             self.data += data
         pass
     def handle_starttag(self, tag, attrs):
-        if tag != 'div':
+        """ Now we trying to cutoff part of page """   
+        if tag != 'h1':
             return
         if len(attrs) == 0:
             return
+        """
         for item in attrs:
             if item[0] != u"class":
                 return;
             if item[1] != 'b-content b-content_type_lingvo':
                 return
-        debug("div finded, attrs %s" %attrs)
+        """
+        for item in attrs:
+            if item[0] != u"class":
+                return;
+            if item[1] != u"b-translation__title":
+                return
+        debug("h1 finded, attrs %s" %attrs)
         self.recording += 1
         pass
        
