@@ -16,6 +16,9 @@ def usage():
     ./program YOU_WORLD in english
     """
 
+types = { u'b-translation__title' : 'title', 
+list_useless_types = [u'b-translation__controls']
+
 def debug(msg):
     print msg
 
@@ -23,35 +26,39 @@ class MyTestParser(HTMLParser):
     def __init__(self):
         HTMLParser.__init__(self)
         self.recording = 0
-        self.data = u""
+        self.nesting = 0
+        self.data = u[]
     def handle_data(self, data):
         if self.recording == 1:
             self.data += data
         pass
-    def handle_starttag(self, tag, attrs):
+    def determine_start_of_translation(self, tag, attrs):
         """ Now we trying to cutoff part of page """   
-        if tag != 'h1':
+        if tag != 'td':
             return
         if len(attrs) == 0:
             return
-        """
         for item in attrs:
             if item[0] != u"class":
-                return;
-            if item[1] != 'b-content b-content_type_lingvo':
                 return
-        """
-        for item in attrs:
-            if item[0] != u"class":
-                return;
-            if item[1] != u"b-translation__title":
+            if item[1] != u"l-page__center":
                 return
-        debug("h1 finded, attrs %s" %attrs)
-        self.recording += 1
-        pass
+        debug("start point, attrs %s" %attrs)
+        self.recording = 1
+        self.nesting += 1
+
+    def handle_starttag(self, tag, attrs):
+        if self.recording == 0:
+            self.determine_start_of_translation(tag, attrs)
+            return
+        self.nesting += 1       
        
     def handle_endtag(self, tag):
-        pass
+        if self.recording == 0:
+            return
+        self.nesting -= 1
+        if self.nesting < 1:
+            self.recording = 0
 
 def get_description(url):
     
