@@ -1,0 +1,10 @@
+#!/usr/bin/python
+
+import sys
+
+try:
+    code = open('./boot').read()
+    buf = code + ('\x90' * (512 - 2 - len(code))) + '\x55\xaa'
+    open('img', 'w').write(buf)
+except Exception as e:
+    print "runtime err"
