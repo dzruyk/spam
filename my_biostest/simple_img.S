@@ -3,8 +3,8 @@
 _start:
 	movw	$0x0007,	%bx
 	movw	$strsz,		%cx
-	#movw	$0x7c0,		%ax
-	xorw	%ax,		%ax
+	movw	$0x7c0,		%ax
+	#xorw	%ax,		%ax
 	movw	%ax,		%es
 	movw	$str,		%bp
 	movw	$0x1301,	%ax
