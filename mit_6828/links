@@ -1,0 +1,4 @@
+a20 enable/disable tactics	http://www.win.tue.nl/~aeb/linux/kbd/A20.html
+ports				http://en.wikipedia.org/wiki/Input/Output_Base_Address
+				http://www.os2site.com/sw/info/memory/ports.txt
+CMOS operate			http://wiki.osdev.org/CMOS
