@@ -22,8 +22,8 @@ Injection urls now are hardcoded.
 
 IS_DEBUG = 0
 
-url = "http://82.146.54.187/reg.php"
-data = "invite={payload}&login=ekx&password=g00d"
+url = "http://83.188.88.87/reg.php"
+data = "invite={payload}"
 
 SLEEP_TIME = 3
 MAX_TIMEVAL = 20
